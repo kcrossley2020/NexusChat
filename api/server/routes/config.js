@@ -64,9 +64,13 @@ router.get('/', async function (req, res) {
 
     const balanceConfig = getBalanceConfig(appConfig);
 
+    // Debug logging for appTitle
+    logger.info('[DEBUG] appConfig.interface:', appConfig?.interface);
+    logger.info('[DEBUG] appConfig.interfaceConfig:', appConfig?.interfaceConfig);
+
     /** @type {TStartupConfig} */
     const payload = {
-      appTitle: process.env.APP_TITLE || 'LibreChat',
+      appTitle: appConfig?.interfaceConfig?.appTitle || appConfig?.interface?.appTitle || process.env.APP_TITLE || 'LibreChat',
       socialLogins: appConfig?.registration?.socialLogins ?? defaultSocialLogins,
       discordLoginEnabled: !!process.env.DISCORD_CLIENT_ID && !!process.env.DISCORD_CLIENT_SECRET,
       facebookLoginEnabled:

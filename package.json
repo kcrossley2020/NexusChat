@@ -82,7 +82,13 @@
     "migrate:agent-permissions:batch": "node config/migrate-agent-permissions.js --batch-size=50",
     "migrate:prompt-permissions:dry-run": "node config/migrate-prompt-permissions.js --dry-run",
     "migrate:prompt-permissions": "node config/migrate-prompt-permissions.js",
-    "migrate:prompt-permissions:batch": "node config/migrate-prompt-permissions.js --batch-size=50"
+    "migrate:prompt-permissions:batch": "node config/migrate-prompt-permissions.js --batch-size=50",
+    "test:videxa": "playwright test --config=tests/videxa-baseline/playwright.config.js",
+    "test:videxa:headed": "playwright test --config=tests/videxa-baseline/playwright.config.js --headed",
+    "test:videxa:branding": "playwright test tests/videxa-baseline/branding.spec.js --config=tests/videxa-baseline/playwright.config.js",
+    "test:videxa:functionality": "playwright test tests/videxa-baseline/functionality.spec.js --config=tests/videxa-baseline/playwright.config.js",
+    "test:videxa:report": "npx playwright show-report tests/videxa-baseline/playwright-report",
+    "test:mcp-playwright": "npm run test:videxa"
   },
   "repository": {
     "type": "git",
@@ -100,7 +106,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.20.0",
     "@microsoft/eslint-formatter-sarif": "^3.1.0",
-    "@playwright/test": "^1.50.1",
+    "@playwright/test": "^1.56.1",
     "@types/react-virtualized": "^9.22.0",
     "caniuse-lite": "^1.0.30001741",
     "cross-env": "^7.0.3",

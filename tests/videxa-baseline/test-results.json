@@ -1,0 +1,167 @@
+{
+  "config": {
+    "configFile": "C:\\videxa-repos\\NexusChat\\tests\\videxa-baseline\\playwright.config.js",
+    "rootDir": "C:/videxa-repos/NexusChat/tests/videxa-baseline",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/videxa-repos/NexusChat/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/videxa-repos/NexusChat/tests/videxa-baseline",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.1",
+    "workers": 14,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "branding.spec.js",
+      "file": "branding.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Videxa Branding - Baseline Verification",
+          "file": "branding.spec.js",
+          "line": 27,
+          "column": 6,
+          "specs": [
+            {
+              "title": "VB010: Videxa branding verified - title changed from LibreChat",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1864,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\videxa-repos\\NexusChat\\tests\\videxa-baseline\\branding.spec.js:122:31",
+                        "location": {
+                          "file": "C:\\videxa-repos\\NexusChat\\tests\\videxa-baseline\\branding.spec.js",
+                          "column": 31,
+                          "line": 122
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 120 |\u001b[39m     \u001b[90m// Ideally should contain \"Videxa\" or \"Nex\", but at minimum shouldn't say \"LibreChat\" alone\u001b[39m\n \u001b[90m 121 |\u001b[39m     \u001b[36mconst\u001b[39m hasVidexaBranding \u001b[33m=\u001b[39m title\u001b[33m.\u001b[39mincludes(\u001b[32m'Videxa'\u001b[39m) \u001b[33m||\u001b[39m title\u001b[33m.\u001b[39mincludes(\u001b[32m'Nex'\u001b[39m) \u001b[33m||\u001b[39m \u001b[33m!\u001b[39mtitle\u001b[33m.\u001b[39mincludes(\u001b[32m'LibreChat'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 122 |\u001b[39m     expect(hasVidexaBranding)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Note: customWelcome message from librechat.yaml only shows after login\u001b[39m\n \u001b[90m 125 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\videxa-repos\\NexusChat\\tests\\videxa-baseline\\branding.spec.js",
+                            "column": 31,
+                            "line": 122
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  120 |     // Ideally should contain \"Videxa\" or \"Nex\", but at minimum shouldn't say \"LibreChat\" alone\n  121 |     const hasVidexaBranding = title.includes('Videxa') || title.includes('Nex') || !title.includes('LibreChat');\n> 122 |     expect(hasVidexaBranding).toBeTruthy();\n      |                               ^\n  123 |\n  124 |     // Note: customWelcome message from librechat.yaml only shows after login\n  125 |   });\n    at C:\\videxa-repos\\NexusChat\\tests\\videxa-baseline\\branding.spec.js:122:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-22T18:47:45.465Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\test-results\\branding-Videxa-Branding---fcb4e-itle-changed-from-LibreChat-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\videxa-repos\\NexusChat\\test-results\\branding-Videxa-Branding---fcb4e-itle-changed-from-LibreChat-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\videxa-repos\\NexusChat\\test-results\\branding-Videxa-Branding---fcb4e-itle-changed-from-LibreChat-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\videxa-repos\\NexusChat\\tests\\videxa-baseline\\branding.spec.js",
+                        "column": 31,
+                        "line": 122
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fbd59936d29cd30b4e79-53be1e14de1ac781e9fb",
+              "file": "branding.spec.js",
+              "line": 107,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-22T18:47:44.776Z",
+    "duration": 3198.3140000000003,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
