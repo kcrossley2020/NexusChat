@@ -1,7 +1,7 @@
 {
-  "name": "LibreChat",
-  "version": "v0.8.0",
-  "description": "",
+  "name": "NexusChat",
+  "version": "v1.0.0",
+  "description": "Videxa NexusChat - AI-powered healthcare data intelligence assistant",
   "workspaces": [
     "api",
     "client",
@@ -92,14 +92,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/danny-avila/LibreChat.git"
+    "url": "git+https://github.com/kcrossley2020/NexusChat.git"
   },
-  "author": "",
+  "author": "Videxa",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/danny-avila/LibreChat/issues"
+    "url": "https://github.com/kcrossley2020/NexusChat/issues"
   },
-  "homepage": "https://librechat.ai/",
+  "homepage": "https://github.com/kcrossley2020/NexusChat",
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
     "@eslint/compat": "^1.2.6",

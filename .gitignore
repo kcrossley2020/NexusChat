@@ -138,3 +138,7 @@ helm/**/.values.yaml
 /.tabnine/
 /.codeium
 *.local.md
+
+# Test files with credentials
+test_production_snowflake.py
+test_snowflake_with_user_creds.py

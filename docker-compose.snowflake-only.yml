@@ -1,0 +1,139 @@
+# ============================================================================
+# NexusChat - Snowflake-Only Architecture (MongoDB-Free)
+# All data stored in Snowflake for HIPAA compliance
+# ============================================================================
+
+version: '3.8'
+
+services:
+  api:
+    container_name: NexusChat-Videxa-Snowflake
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nexuschat:videxa-snowflake-only
+    ports:
+      - "3080:3080"
+    depends_on:
+      - meilisearch
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Application
+      - HOST=0.0.0.0
+      - PORT=3080
+      - APP_TITLE=Nex by Videxa - Healthcare Claims
+      - DOMAIN_SERVER=${DOMAIN_SERVER:-http://localhost:3080}
+
+      # Snowflake Backend (replaces MongoDB)
+      - USE_SNOWFLAKE_STORAGE=true
+      - AGENTNEXUS_API_URL=${AGENTNEXUS_API_URL:-http://host.docker.internal:8000}
+      - AGENTNEXUS_API_KEY=${AGENTNEXUS_API_KEY}
+
+      # Meilisearch (for search indexing only)
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+
+      # Snowflake Cortex LLM
+      - SNOWFLAKE_CORTEX_MODEL=${SNOWFLAKE_CORTEX_MODEL:-claude-sonnet-4}
+
+      # DISABLED: MongoDB (using Snowflake instead)
+      # MONGO_URI is not set
+
+      # DISABLED: RAG API (HIPAA violation - sends data to OpenAI)
+      # RAG_API_URL is not set
+      # RAG_PORT is not set
+
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
+      - ./images:/app/client/public/images
+      - ./logs:/app/logs
+    networks:
+      - nexuschat-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  meilisearch:
+    container_name: nexuschat-meilisearch
+    image: getmeili/meilisearch:v1.12.3
+    restart: always
+    environment:
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+    volumes:
+      - ./meili_data_v1.12:/meili_data
+    networks:
+      - nexuschat-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # REMOVED SERVICES (MongoDB-free architecture)
+  # ============================================================================
+
+  # mongodb: REMOVED
+  #   - Replaced with Snowflake NEXUSCHAT schema
+  #   - Conversations stored in CONVERSATIONS table
+  #   - Messages stored in CHAT_MESSAGES table
+  #   - User preferences stored in USER_PREFERENCES table
+
+  # vectordb (PostgreSQL + pgvector): REMOVED
+  #   - Replaced with Snowflake Cortex Search Service
+  #   - Embeddings stored in Snowflake VECTOR columns
+  #   - Native semantic search via Cortex
+
+  # rag_api: REMOVED
+  #   - HIPAA violation (sends data to OpenAI)
+  #   - Replaced with Snowflake Cortex embeddings
+  #   - No external API calls
+
+networks:
+  nexuschat-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-nexuschat
+
+# ============================================================================
+# Architecture Benefits
+# ============================================================================
+#
+# ✅ HIPAA Compliant:
+#   - No MongoDB to secure separately
+#   - No PostgreSQL to back up separately
+#   - No RAG API sending data to OpenAI
+#   - All data in single Snowflake tenant
+#
+# ✅ Cost Savings:
+#   - No MongoDB hosting (~$50-200/month)
+#   - No PostgreSQL hosting
+#   - Single database to manage
+#
+# ✅ Simpler Architecture:
+#   - 2 containers instead of 5
+#   - 1 database instead of 3
+#   - Fewer network hops
+#   - Easier to deploy and maintain
+#
+# ✅ Better Analytics:
+#   - Query conversations alongside claims data
+#   - Single SQL interface
+#   - Power BI connects to one source
+#
+# ✅ Built-in Features:
+#   - Snowflake Time Travel (90-day recovery)
+#   - Automatic backups
+#   - Enterprise security
+#   - Audit logging
+#
+# ============================================================================
