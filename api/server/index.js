@@ -43,21 +43,40 @@ const startServer = async () => {
   if (typeof Bun !== 'undefined') {
     axios.defaults.headers.common['Accept-Encoding'] = 'gzip';
   }
+
+  const USE_SNOWFLAKE_STORAGE = isEnabled(process.env.USE_SNOWFLAKE_STORAGE);
+
   await connectDb();
 
-  logger.info('Connected to MongoDB');
-  indexSync().catch((err) => {
-    logger.error('[indexSync] Background sync failed:', err);
-  });
+  if (USE_SNOWFLAKE_STORAGE) {
+    logger.info('Using Snowflake storage - MongoDB/MeiliSearch sync disabled');
+  } else {
+    logger.info('Connected to MongoDB');
+    indexSync().catch((err) => {
+      logger.error('[indexSync] Background sync failed:', err);
+    });
+  }
 
   app.disable('x-powered-by');
   app.set('trust proxy', trusted_proxy);
 
-  await seedDatabase();
+  // Skip MongoDB-dependent database seeding when using Snowflake storage
+  if (!USE_SNOWFLAKE_STORAGE) {
+    await seedDatabase();
+  } else {
+    logger.info('Skipping database seeding - using Snowflake storage');
+  }
+
   const appConfig = await getAppConfig();
   initializeFileStorage(appConfig);
   await performStartupChecks(appConfig);
-  await updateInterfacePermissions(appConfig);
+
+  // Skip MongoDB-dependent permission updates when using Snowflake storage
+  if (!USE_SNOWFLAKE_STORAGE) {
+    await updateInterfacePermissions(appConfig);
+  } else {
+    logger.info('Skipping interface permissions update - using Snowflake storage');
+  }
 
   const indexPath = path.join(appConfig.paths.dist, 'index.html');
   let indexHTML = fs.readFileSync(indexPath, 'utf8');
@@ -173,7 +192,13 @@ const startServer = async () => {
 
     await initializeMCPs();
     await initializeOAuthReconnectManager();
-    await checkMigrations();
+
+    // Skip MongoDB-dependent migrations when using Snowflake storage
+    if (!USE_SNOWFLAKE_STORAGE) {
+      await checkMigrations();
+    } else {
+      logger.info('Skipping permissions migrations - using Snowflake storage');
+    }
   });
 };
 

@@ -15,6 +15,45 @@ NexusChat enables you to:
 
 ---
 
+## UC0000: Test Automation Bypass (Testing Use Case)
+
+**Summary**: Automated testing framework can create test users and authenticate without email verification, enabling end-to-end testing of NexusChat functionality. This bypass is only available in test/development environments.
+
+**Actors**: Automated Test Frameworks (Playwright, MCP), QA Engineers
+
+**Preconditions**:
+- AgentNexus backend has `ENABLE_TESTING_ENDPOINTS=true` environment variable
+- Snowflake connection configured and accessible
+- Test environment (not production)
+
+**Flow**:
+1. Test framework calls `POST /api/testing/create-user` with test user credentials
+2. Backend creates user directly in Snowflake USER_PROFILES with EMAIL_VERIFIED=TRUE
+3. User bypasses Azure Tables and email verification completely
+4. User is marked with REGISTRATION_METHOD='testing' for cleanup isolation
+5. Test framework calls `POST /api/auth/login` to obtain JWT token
+6. Token is used to access NexusChat via SSO
+7. After tests complete, framework calls `DELETE /api/testing/delete-user/{email}` for cleanup
+
+**Postconditions**:
+- Test user exists in Snowflake with verified email
+- JWT token obtained for authenticated API calls
+- Test user can access NexusChat without manual verification
+- Test user can be cleanly deleted after test execution
+
+**Security**:
+- Endpoint returns 404 when `ENABLE_TESTING_ENDPOINTS=false`
+- Only users with REGISTRATION_METHOD='testing' can be deleted via API
+- Production environments must have testing endpoints disabled
+
+**Related Files**:
+- Endpoint: `POST /api/testing/create-user`
+- Endpoint: `DELETE /api/testing/delete-user/{email}`
+- Endpoint: `GET /api/testing/list-test-users`
+- Table: `AGENTNEXUS_DB.AUTH_SCHEMA.USER_PROFILES`
+
+---
+
 ## UC0001: File Ingestion for Healthcare Data Analysis
 
 **Summary**: Users can upload healthcare files (claims, policies, EOBs, contracts) to NexusChat for AI-powered analysis and natural language querying. Files are processed and stored in tenant-specific Snowflake databases for compliance and isolation.

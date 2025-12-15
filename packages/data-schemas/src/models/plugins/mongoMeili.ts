@@ -600,6 +600,13 @@ const createMeiliMongooseModel = ({
  * @param options.syncDelayMs - Delay between batches in milliseconds.
  */
 export default function mongoMeili(schema: Schema, options: MongoMeiliOptions): void {
+  // Check if MeiliSearch should be enabled - Skip if using Snowflake storage
+  const useSnowflakeStorage = process.env.USE_SNOWFLAKE_STORAGE === 'true';
+  if (useSnowflakeStorage || !meiliEnabled) {
+    logger.info(`[mongoMeili] Plugin disabled - using ${useSnowflakeStorage ? 'Snowflake' : 'non-Meili'} storage`);
+    return;
+  }
+
   const mongoose = options.mongoose;
   validateOptions(options);
 

@@ -30,6 +30,10 @@ export default defineConfig({
     headless: true,
     storageState: path.resolve(process.cwd(), 'e2e/storageState.json'),
     screenshot: 'only-on-failure',
+    /* Use domcontentloaded instead of networkidle for navigation.
+       NexusChat maintains persistent WebSocket connections which prevent networkidle from ever triggering. */
+    navigationTimeout: 30000,
+    actionTimeout: 15000,
   },
   expect: {
     timeout: 10000,

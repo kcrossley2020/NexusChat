@@ -1,0 +1,434 @@
+# claims_semantic_model.yaml
+#
+# Semantic Model for Snowflake Cortex Agent - Healthcare Claims Analytics
+#
+# Purpose:
+#   Define natural language query mappings for claims data analysis
+#
+# Usage:
+#   1. Modify ${HCS_DATABASE} placeholder or use as template
+#   2. Upload to Snowflake stage:
+#      PUT file://C:/videxa-repos/NexusChat/snowflake-setup/claims_semantic_model.yaml @SEMANTIC_MODELS/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+#
+# Location: C:\videxa-repos\NexusChat\snowflake-setup\claims_semantic_model.yaml
+# Created: December 2025
+# For: NexusChat - Snowflake Cortex Integration
+
+name: healthcare_claims_analytics
+description: |
+  Semantic model for analyzing healthcare insurance claims data.
+  Supports queries about claim status, denials, payments, providers, and payers.
+
+# Database and schema configuration
+# Replace ${HCS_DATABASE} with actual database name (e.g., HCS0001_DB)
+database: ${HCS_DATABASE}
+schema: CLAIMS
+
+# =============================================================================
+# TABLES
+# =============================================================================
+tables:
+
+  # ---------------------------------------------------------------------------
+  # INSURANCE_CLAIMS - Core claims data
+  # ---------------------------------------------------------------------------
+  - name: INSURANCE_CLAIMS
+    description: Healthcare insurance claims submitted by providers
+    base_table:
+      database: ${HCS_DATABASE}
+      schema: CLAIMS
+      table: INSURANCE_CLAIMS
+
+    # Dimensions (categorical/descriptive fields)
+    dimensions:
+      - name: claim_id
+        description: Unique identifier for the claim
+        expr: CLAIM_ID
+        data_type: VARCHAR
+        unique: true
+
+      - name: claim_number
+        description: Business claim number (may be resubmitted)
+        expr: CLAIM_NUMBER
+        data_type: VARCHAR
+
+      - name: patient_id
+        description: Patient identifier
+        expr: PATIENT_ID
+        data_type: VARCHAR
+
+      - name: patient_name
+        description: Patient full name
+        expr: PATIENT_FIRST_NAME || ' ' || PATIENT_LAST_NAME
+        data_type: VARCHAR
+
+      - name: member_id
+        description: Insurance member ID
+        expr: MEMBER_ID
+        data_type: VARCHAR
+
+      - name: policy_number
+        description: Insurance policy number
+        expr: POLICY_NUMBER
+        data_type: VARCHAR
+
+      - name: provider_npi
+        description: Provider National Provider Identifier (10-digit)
+        expr: PROVIDER_NPI
+        data_type: VARCHAR
+
+      - name: provider_name
+        description: Name of the billing provider
+        expr: PROVIDER_NAME
+        data_type: VARCHAR
+
+      - name: facility_name
+        description: Name of the facility where service was rendered
+        expr: FACILITY_NAME
+        data_type: VARCHAR
+
+      - name: payer_id
+        description: Insurance payer identifier
+        expr: PAYER_ID
+        data_type: VARCHAR
+
+      - name: payer_name
+        description: Name of the insurance payer
+        expr: PAYER_NAME
+        data_type: VARCHAR
+
+      - name: claim_status
+        description: Current status of the claim (SUBMITTED, PENDING, APPROVED, DENIED, PAID, APPEALED)
+        expr: CLAIM_STATUS
+        data_type: VARCHAR
+        sample_values:
+          - SUBMITTED
+          - PENDING
+          - APPROVED
+          - DENIED
+          - PAID
+          - APPEALED
+
+      - name: denial_reason
+        description: Reason code and description for denied claims
+        expr: DENIAL_REASON
+        data_type: VARCHAR
+
+      - name: denial_category
+        description: Category of denial (ELIGIBILITY, AUTHORIZATION, MEDICAL_NECESSITY, CODING, TIMELY_FILING, OTHER)
+        expr: DENIAL_CATEGORY
+        data_type: VARCHAR
+        sample_values:
+          - ELIGIBILITY
+          - AUTHORIZATION
+          - MEDICAL_NECESSITY
+          - CODING
+          - TIMELY_FILING
+          - DUPLICATE
+          - OTHER
+
+      - name: primary_diagnosis
+        description: Primary ICD-10 diagnosis code
+        expr: PRIMARY_DIAGNOSIS_CODE
+        data_type: VARCHAR
+
+      - name: primary_procedure
+        description: Primary CPT/HCPCS procedure code
+        expr: PRIMARY_PROCEDURE_CODE
+        data_type: VARCHAR
+
+      - name: place_of_service
+        description: Place of service code (11=Office, 21=Inpatient, 22=Outpatient, etc.)
+        expr: PLACE_OF_SERVICE
+        data_type: VARCHAR
+
+      - name: claim_type
+        description: Type of claim (PROFESSIONAL, INSTITUTIONAL)
+        expr: CLAIM_TYPE
+        data_type: VARCHAR
+        sample_values:
+          - PROFESSIONAL
+          - INSTITUTIONAL
+
+      - name: service_date
+        description: Date the service was provided
+        expr: SERVICE_DATE
+        data_type: DATE
+
+      - name: submission_date
+        description: Date the claim was submitted
+        expr: SUBMISSION_DATE
+        data_type: DATE
+
+      - name: adjudication_date
+        description: Date the claim was adjudicated (approved/denied)
+        expr: ADJUDICATION_DATE
+        data_type: DATE
+
+      - name: payment_date
+        description: Date the payment was issued
+        expr: PAYMENT_DATE
+        data_type: DATE
+
+      - name: service_month
+        description: Month of service (YYYY-MM format)
+        expr: TO_CHAR(SERVICE_DATE, 'YYYY-MM')
+        data_type: VARCHAR
+
+      - name: service_year
+        description: Year of service
+        expr: YEAR(SERVICE_DATE)
+        data_type: NUMBER
+
+    # Measures (numeric/aggregatable fields)
+    measures:
+      - name: claim_count
+        description: Count of claims
+        expr: COUNT(DISTINCT CLAIM_ID)
+        data_type: NUMBER
+
+      - name: billed_amount
+        description: Total amount billed by the provider
+        expr: SUM(BILLED_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: approved_amount
+        description: Total amount approved by payer
+        expr: SUM(APPROVED_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: paid_amount
+        description: Total amount actually paid
+        expr: SUM(PAID_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: patient_responsibility
+        description: Amount patient is responsible for (copay, deductible, coinsurance)
+        expr: SUM(PATIENT_RESPONSIBILITY)
+        data_type: DECIMAL(12,2)
+
+      - name: adjustment_amount
+        description: Total adjustments (contractual, write-offs)
+        expr: SUM(BILLED_AMOUNT - APPROVED_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: denied_count
+        description: Count of denied claims
+        expr: COUNT(DISTINCT CASE WHEN CLAIM_STATUS = 'DENIED' THEN CLAIM_ID END)
+        data_type: NUMBER
+
+      - name: approved_count
+        description: Count of approved claims
+        expr: COUNT(DISTINCT CASE WHEN CLAIM_STATUS IN ('APPROVED', 'PAID') THEN CLAIM_ID END)
+        data_type: NUMBER
+
+      - name: pending_count
+        description: Count of pending claims
+        expr: COUNT(DISTINCT CASE WHEN CLAIM_STATUS = 'PENDING' THEN CLAIM_ID END)
+        data_type: NUMBER
+
+      - name: denial_rate
+        description: Percentage of claims denied
+        expr: ROUND(100.0 * COUNT(DISTINCT CASE WHEN CLAIM_STATUS = 'DENIED' THEN CLAIM_ID END) / NULLIF(COUNT(DISTINCT CLAIM_ID), 0), 2)
+        data_type: DECIMAL(5,2)
+
+      - name: approval_rate
+        description: Percentage of claims approved
+        expr: ROUND(100.0 * COUNT(DISTINCT CASE WHEN CLAIM_STATUS IN ('APPROVED', 'PAID') THEN CLAIM_ID END) / NULLIF(COUNT(DISTINCT CLAIM_ID), 0), 2)
+        data_type: DECIMAL(5,2)
+
+      - name: average_billed
+        description: Average billed amount per claim
+        expr: AVG(BILLED_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: average_paid
+        description: Average paid amount per claim
+        expr: AVG(PAID_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: collection_rate
+        description: Percentage of billed amount that was paid
+        expr: ROUND(100.0 * SUM(PAID_AMOUNT) / NULLIF(SUM(BILLED_AMOUNT), 0), 2)
+        data_type: DECIMAL(5,2)
+
+      - name: days_to_payment
+        description: Average days from submission to payment
+        expr: AVG(DATEDIFF('day', SUBMISSION_DATE, PAYMENT_DATE))
+        data_type: NUMBER
+
+      - name: days_to_adjudication
+        description: Average days from submission to adjudication
+        expr: AVG(DATEDIFF('day', SUBMISSION_DATE, ADJUDICATION_DATE))
+        data_type: NUMBER
+
+  # ---------------------------------------------------------------------------
+  # REMITTANCES - Payment/ERA data (from 835)
+  # ---------------------------------------------------------------------------
+  - name: REMITTANCES
+    description: Electronic remittance advice (835) payment data
+    base_table:
+      database: ${HCS_DATABASE}
+      schema: CLAIMS
+      table: REMITTANCES
+
+    dimensions:
+      - name: remittance_id
+        description: Unique remittance identifier
+        expr: REMITTANCE_ID
+        data_type: VARCHAR
+        unique: true
+
+      - name: claim_number
+        description: Associated claim number
+        expr: CLAIM_NUMBER
+        data_type: VARCHAR
+
+      - name: check_number
+        description: Check or EFT trace number
+        expr: CHECK_NUMBER
+        data_type: VARCHAR
+
+      - name: payment_method
+        description: Payment method (ACH, CHK, NON)
+        expr: PAYMENT_METHOD
+        data_type: VARCHAR
+
+      - name: payer_name
+        description: Payer name on remittance
+        expr: PAYER_NAME
+        data_type: VARCHAR
+
+      - name: payment_date
+        description: Date payment was issued
+        expr: PAYMENT_DATE
+        data_type: DATE
+
+    measures:
+      - name: remittance_count
+        description: Count of remittance records
+        expr: COUNT(DISTINCT REMITTANCE_ID)
+        data_type: NUMBER
+
+      - name: total_paid
+        description: Total payment amount
+        expr: SUM(PAYMENT_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+      - name: total_adjustments
+        description: Total adjustment amount
+        expr: SUM(ADJUSTMENT_AMOUNT)
+        data_type: DECIMAL(12,2)
+
+# =============================================================================
+# RELATIONSHIPS
+# =============================================================================
+relationships:
+  - name: claims_to_remittances
+    left_table: INSURANCE_CLAIMS
+    right_table: REMITTANCES
+    join_type: LEFT
+    relationship_type: one_to_many
+    condition: INSURANCE_CLAIMS.CLAIM_NUMBER = REMITTANCES.CLAIM_NUMBER
+
+# =============================================================================
+# VERIFIED QUERIES (Examples for the agent)
+# =============================================================================
+verified_queries:
+  - name: total_claims_this_month
+    question: How many claims were submitted this month?
+    sql: |
+      SELECT COUNT(DISTINCT CLAIM_ID) as claim_count
+      FROM ${HCS_DATABASE}.CLAIMS.INSURANCE_CLAIMS
+      WHERE DATE_TRUNC('month', SUBMISSION_DATE) = DATE_TRUNC('month', CURRENT_DATE())
+
+  - name: denial_rate_by_payer
+    question: What is the denial rate by payer?
+    sql: |
+      SELECT
+        PAYER_NAME,
+        COUNT(DISTINCT CLAIM_ID) as total_claims,
+        COUNT(DISTINCT CASE WHEN CLAIM_STATUS = 'DENIED' THEN CLAIM_ID END) as denied_claims,
+        ROUND(100.0 * COUNT(DISTINCT CASE WHEN CLAIM_STATUS = 'DENIED' THEN CLAIM_ID END) /
+              NULLIF(COUNT(DISTINCT CLAIM_ID), 0), 2) as denial_rate
+      FROM ${HCS_DATABASE}.CLAIMS.INSURANCE_CLAIMS
+      GROUP BY PAYER_NAME
+      ORDER BY denial_rate DESC
+
+  - name: top_denial_reasons
+    question: What are the top denial reasons?
+    sql: |
+      SELECT
+        DENIAL_CATEGORY,
+        DENIAL_REASON,
+        COUNT(DISTINCT CLAIM_ID) as claim_count,
+        SUM(BILLED_AMOUNT) as total_billed
+      FROM ${HCS_DATABASE}.CLAIMS.INSURANCE_CLAIMS
+      WHERE CLAIM_STATUS = 'DENIED'
+      GROUP BY DENIAL_CATEGORY, DENIAL_REASON
+      ORDER BY claim_count DESC
+      LIMIT 10
+
+  - name: revenue_by_provider
+    question: What is the revenue by provider?
+    sql: |
+      SELECT
+        PROVIDER_NAME,
+        PROVIDER_NPI,
+        COUNT(DISTINCT CLAIM_ID) as claim_count,
+        SUM(BILLED_AMOUNT) as total_billed,
+        SUM(PAID_AMOUNT) as total_paid,
+        ROUND(100.0 * SUM(PAID_AMOUNT) / NULLIF(SUM(BILLED_AMOUNT), 0), 2) as collection_rate
+      FROM ${HCS_DATABASE}.CLAIMS.INSURANCE_CLAIMS
+      GROUP BY PROVIDER_NAME, PROVIDER_NPI
+      ORDER BY total_paid DESC
+
+  - name: claims_trend
+    question: Show me the claims trend over the last 6 months
+    sql: |
+      SELECT
+        TO_CHAR(SERVICE_DATE, 'YYYY-MM') as month,
+        COUNT(DISTINCT CLAIM_ID) as claim_count,
+        SUM(BILLED_AMOUNT) as total_billed,
+        SUM(PAID_AMOUNT) as total_paid
+      FROM ${HCS_DATABASE}.CLAIMS.INSURANCE_CLAIMS
+      WHERE SERVICE_DATE >= DATEADD('month', -6, CURRENT_DATE())
+      GROUP BY TO_CHAR(SERVICE_DATE, 'YYYY-MM')
+      ORDER BY month
+
+# =============================================================================
+# CONTEXT INSTRUCTIONS
+# =============================================================================
+context:
+  system_prompt: |
+    You are a healthcare claims analytics assistant for this organization.
+    You help users analyze insurance claims data including:
+    - Claim submission and status tracking
+    - Denial rates and denial reason analysis
+    - Payment and revenue analysis
+    - Provider and payer performance metrics
+    - Trends over time
+
+    When answering questions:
+    - Format currency as $X,XXX.XX
+    - Format percentages as XX.XX%
+    - Show counts with commas for thousands
+    - Always specify the time period for the data
+    - Explain any notable patterns or outliers
+    - If data is insufficient, explain what additional data would help
+
+  domain_terms:
+    - term: denial rate
+      definition: Percentage of claims that were denied by the payer
+    - term: collection rate
+      definition: Percentage of billed amount that was actually collected (paid)
+    - term: days in AR
+      definition: Days in accounts receivable - average time from submission to payment
+    - term: clean claim rate
+      definition: Percentage of claims that process without errors on first submission
+    - term: ERA
+      definition: Electronic Remittance Advice (835 transaction)
+    - term: EOB
+      definition: Explanation of Benefits
+    - term: NPI
+      definition: National Provider Identifier (10-digit provider ID)

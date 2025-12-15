@@ -1,9 +1,11 @@
 const { z } = require('zod');
 const { logger } = require('@librechat/data-schemas');
-const { createTempChatExpirationDate } = require('@librechat/api');
+const { createTempChatExpirationDate, isEnabled } = require('@librechat/api');
 const { Message } = require('~/db/models');
+const SnowflakeChatService = require('~/server/services/SnowflakeChatService');
 
 const idSchema = z.string().uuid();
+const USE_SNOWFLAKE_STORAGE = isEnabled(process.env.USE_SNOWFLAKE_STORAGE);
 
 /**
  * Saves a message in the database.
@@ -74,6 +76,49 @@ async function saveMessage(req, params, metadata) {
       logger.info(`---\`saveMessage\` context: ${metadata?.context}`);
       update.tokenCount = 0;
     }
+
+    // Use Snowflake storage when enabled
+    if (USE_SNOWFLAKE_STORAGE) {
+      logger.debug('[saveMessage] Using Snowflake storage via SnowflakeChatService');
+      const authToken = req.user?.agentNexusToken || req.headers?.authorization?.replace('Bearer ', '');
+
+      const result = await SnowflakeChatService.saveMessage(
+        {
+          messageId: update.messageId,
+          conversationId: params.conversationId,
+          userId: req.user.id,
+          text: params.text,
+          sender: params.sender,
+          isCreatedByUser: params.isCreatedByUser,
+          endpoint: params.endpoint,
+          model: params.model,
+          tokenCount: update.tokenCount,
+          finishReason: params.finish_reason,
+          parentMessageId: params.parentMessageId,
+          ...params,
+        },
+        authToken
+      );
+
+      // Check if storage failed and log warning for monitoring
+      if (result._storageFailed) {
+        logger.warn('[saveMessage] Snowflake storage failed - message not persisted', {
+          messageId: update.messageId,
+          conversationId: params.conversationId,
+          errorCode: result._storageErrorCode,
+          error: result._storageError,
+        });
+      }
+
+      return {
+        ...update,
+        ...result,
+        _id: result.messageId || update.messageId,
+        createdAt: result.createdAt || new Date(),
+        updatedAt: result.updatedAt || new Date(),
+      };
+    }
+
     const message = await Message.findOneAndUpdate(
       { messageId: params.messageId, user: req.user.id },
       update,
@@ -310,6 +355,19 @@ async function deleteMessagesSince(req, { messageId, conversationId }) {
  */
 async function getMessages(filter, select) {
   try {
+    // Use Snowflake storage when enabled
+    if (USE_SNOWFLAKE_STORAGE) {
+      logger.debug('[getMessages] Using Snowflake storage via SnowflakeChatService');
+      const conversationId = filter.conversationId;
+      const userId = filter.user;
+      if (conversationId && userId) {
+        const messages = await SnowflakeChatService.getMessages(conversationId, userId, { select });
+        return messages;
+      }
+      // Return empty array if no valid filter
+      return [];
+    }
+
     if (select) {
       return await Message.find(filter).select(select).sort({ createdAt: 1 }).lean();
     }

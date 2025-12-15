@@ -5,6 +5,208 @@ Test cases for validating NexusChat functionality across file ingestion, analyti
 
 ---
 
+## TC-0.1-UC0000: Test User Creation via API (Bypass Email Verification)
+
+**Use Case**: UC0000 - Test Automation Bypass
+
+**Test Objective**: Verify testing endpoint can create test user directly in Snowflake without email verification
+
+**Prerequisites**:
+- AgentNexus backend running on `http://localhost:3050`
+- Environment variable `ENABLE_TESTING_ENDPOINTS=true`
+- Snowflake connection configured and accessible
+
+**Test Steps**:
+1. Call `POST http://localhost:3050/api/testing/create-user`
+2. Provide test user credentials in request body
+3. Verify response contains user_id and success confirmation
+4. Verify user exists in Snowflake USER_PROFILES table
+
+**Expected Input**:
+```json
+{
+  "email": "e2e-test-001@videxa.test",
+  "password": "TestPass123!",
+  "organization_name": "E2E Test Organization",
+  "account_type": "trial"
+}
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "e2e-test-001@videxa.test",
+  "password": "TestPass123!",
+  "message": "Test user created successfully. Use POST /auth/login to authenticate."
+}
+```
+
+**Database Verification**:
+```sql
+SELECT EMAIL, EMAIL_VERIFIED, REGISTRATION_METHOD
+FROM AGENTNEXUS_DB.AUTH_SCHEMA.USER_PROFILES
+WHERE EMAIL = 'e2e-test-001@videxa.test';
+
+-- Expected Result:
+-- EMAIL: e2e-test-001@videxa.test
+-- EMAIL_VERIFIED: TRUE
+-- REGISTRATION_METHOD: testing
+```
+
+**Pass Criteria**:
+- ✅ API returns 200 status with user_id
+- ✅ User created in Snowflake with EMAIL_VERIFIED=TRUE
+- ✅ User marked with REGISTRATION_METHOD='testing'
+- ✅ Password properly hashed with bcrypt
+- ✅ No email verification step required
+
+---
+
+## TC-0.2-UC0000: Test User Login and JWT Token Retrieval
+
+**Use Case**: UC0000 - Test Automation Bypass
+
+**Test Objective**: Verify test user can login immediately without email verification and obtain JWT token
+
+**Prerequisites**:
+- Test user created via TC-0.1 (`e2e-test-001@videxa.test`)
+- AgentNexus backend running
+
+**Test Steps**:
+1. Call `POST http://localhost:3050/api/auth/login`
+2. Provide test user email and password
+3. Verify JWT token returned in response
+4. Decode JWT and verify payload contains user_id and email_verified=true
+
+**Expected Input**:
+```json
+{
+  "email": "e2e-test-001@videxa.test",
+  "password": "TestPass123!"
+}
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwIiwiZW1haWwiOiJlMmUtdGVzdC0wMDFAdmlkZXhhLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZXhwIjoxNzM1Nzc2MDAwLCJpYXQiOjE3MzU2ODk2MDB9...",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**JWT Token Payload**:
+```json
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "e2e-test-001@videxa.test",
+  "email_verified": true,
+  "exp": 1735776000,
+  "iat": 1735689600
+}
+```
+
+**Pass Criteria**:
+- ✅ Login succeeds without email verification prompt
+- ✅ JWT token returned with 24-hour expiration
+- ✅ Token payload contains `email_verified: true`
+- ✅ Token can be decoded and validated
+- ✅ User login event logged to USER_LOGIN_EVENTS table
+
+---
+
+## TC-0.3-UC0000: NexusChat Health Check and Server Availability
+
+**Use Case**: UC0000 - Test Automation Bypass
+
+**Test Objective**: Verify NexusChat server is running and accessible before running E2E tests
+
+**Prerequisites**:
+- NexusChat backend started (Docker or local)
+- NexusChat running on `http://localhost:3080` (or configured port)
+
+**Test Steps**:
+1. Send GET request to `http://localhost:3080/health`
+2. Verify response indicates server is healthy
+3. Optional: Check `/api/health` for API-specific health
+4. Verify response time is under 1 second
+
+**Expected Input**:
+```
+GET http://localhost:3080/health
+```
+
+**Expected Output**:
+```json
+{
+  "status": "healthy",
+  "environment": "development",
+  "services": {
+    "database": "connected",
+    "snowflake": "connected"
+  },
+  "timestamp": "2025-11-04T12:00:00Z"
+}
+```
+
+**Pass Criteria**:
+- ✅ HTTP 200 status returned
+- ✅ Response indicates `status: "healthy"`
+- ✅ Response time under 1 second
+- ✅ Server accessible from test machine
+
+---
+
+## TC-0.4-UC0000: Test User Cleanup and Deletion
+
+**Use Case**: UC0000 - Test Automation Bypass
+
+**Test Objective**: Verify test user can be deleted after tests complete to ensure clean state
+
+**Prerequisites**:
+- Test user exists from TC-0.1 (`e2e-test-001@videxa.test`)
+- User has REGISTRATION_METHOD='testing'
+
+**Test Steps**:
+1. Call `DELETE http://localhost:3050/api/testing/delete-user/e2e-test-001@videxa.test`
+2. Verify response confirms deletion
+3. Verify user no longer exists in Snowflake
+4. Verify login events also deleted
+
+**Expected Input**:
+```
+DELETE /api/testing/delete-user/e2e-test-001@videxa.test
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "message": "Test user e2e-test-001@videxa.test deleted successfully",
+  "login_events_deleted": 1
+}
+```
+
+**Database Verification**:
+```sql
+SELECT COUNT(*) FROM USER_PROFILES WHERE EMAIL = 'e2e-test-001@videxa.test';
+-- Expected: 0
+
+SELECT COUNT(*) FROM USER_LOGIN_EVENTS WHERE EMAIL = 'e2e-test-001@videxa.test';
+-- Expected: 0
+```
+
+**Pass Criteria**:
+- ✅ Deletion succeeds with 200 status
+- ✅ User removed from USER_PROFILES table
+- ✅ Associated login events removed
+- ✅ Safety check prevents deletion of non-test users (REGISTRATION_METHOD != 'testing')
+
+---
+
 ## TC-1-UC0001: Successful CSV Claims File Upload
 
 **Use Case**: UC0001 - File Ingestion for Healthcare Data Analysis

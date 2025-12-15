@@ -14,8 +14,6 @@ services:
     image: nexuschat:videxa-snowflake-only
     ports:
       - "3080:3080"
-    depends_on:
-      - meilisearch
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -28,12 +26,15 @@ services:
 
       # Snowflake Backend (replaces MongoDB)
       - USE_SNOWFLAKE_STORAGE=true
-      - AGENTNEXUS_API_URL=${AGENTNEXUS_API_URL:-http://host.docker.internal:8000}
+      - AGENTNEXUS_API_URL=${AGENTNEXUS_API_URL:-http://host.docker.internal:3050}
       - AGENTNEXUS_API_KEY=${AGENTNEXUS_API_KEY}
 
-      # Meilisearch (for search indexing only)
-      - MEILI_HOST=http://meilisearch:7700
-      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      # Password Reset (via AgentNexus backend)
+      - ALLOW_PASSWORD_RESET=true
+
+      # Search disabled (MongoDB/MeiliSearch removed)
+      # - MEILI_HOST=http://meilisearch:7700
+      # - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
 
       # Snowflake Cortex LLM
       - SNOWFLAKE_CORTEX_MODEL=${SNOWFLAKE_CORTEX_MODEL:-claude-sonnet-4}
@@ -60,23 +61,23 @@ services:
       retries: 3
       start_period: 40s
 
-  meilisearch:
-    container_name: nexuschat-meilisearch
-    image: getmeili/meilisearch:v1.12.3
-    restart: always
-    environment:
-      - MEILI_HOST=http://meilisearch:7700
-      - MEILI_NO_ANALYTICS=true
-      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
-    volumes:
-      - ./meili_data_v1.12:/meili_data
-    networks:
-      - nexuschat-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # meilisearch: REMOVED - Using Snowflake for search
+  #   container_name: nexuschat-meilisearch
+  #   image: getmeili/meilisearch:v1.12.3
+  #   restart: always
+  #   environment:
+  #     - MEILI_HOST=http://meilisearch:7700
+  #     - MEILI_NO_ANALYTICS=true
+  #     - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+  #   volumes:
+  #     - ./meili_data_v1.12:/meili_data
+  #   networks:
+  #     - nexuschat-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
   # ============================================================================
   # REMOVED SERVICES (MongoDB-free architecture)

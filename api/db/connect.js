@@ -4,9 +4,11 @@ const { logger } = require('@librechat/data-schemas');
 
 const mongoose = require('mongoose');
 const MONGO_URI = process.env.MONGO_URI;
+const USE_SNOWFLAKE_STORAGE = isEnabled(process.env.USE_SNOWFLAKE_STORAGE);
 
-if (!MONGO_URI) {
-  throw new Error('Please define the MONGO_URI environment variable');
+// MongoDB is optional when using Snowflake storage
+if (!MONGO_URI && !USE_SNOWFLAKE_STORAGE) {
+  throw new Error('Please define the MONGO_URI environment variable or set USE_SNOWFLAKE_STORAGE=true');
 }
 /** The maximum number of connections in the connection pool. */
 const maxPoolSize = parseInt(process.env.MONGO_MAX_POOL_SIZE) || undefined;
@@ -41,6 +43,12 @@ if (!cached) {
 }
 
 async function connectDb() {
+  // Skip MongoDB connection if using Snowflake storage
+  if (USE_SNOWFLAKE_STORAGE) {
+    logger.info('Skipping MongoDB connection - using Snowflake storage');
+    return null;
+  }
+
   if (cached.conn && cached.conn?._readyState === 1) {
     return cached.conn;
   }

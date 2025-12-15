@@ -142,3 +142,5 @@ helm/**/.values.yaml
 # Test files with credentials
 test_production_snowflake.py
 test_snowflake_with_user_creds.py
+execute_chat_tables_setup.py
+execute_setup_with_snowsql.sh

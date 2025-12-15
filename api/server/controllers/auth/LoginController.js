@@ -16,7 +16,14 @@ const loginController = async (req, res) => {
     const { password: _p, totpSecret: _t, __v, ...user } = req.user;
     user.id = user._id.toString();
 
-    const token = await setAuthTokens(req.user._id, res);
+    // Use AgentNexus token if authenticated via Snowflake
+    let token;
+    if (req.user.useAgentNexusAuth && req.user.agentNexusToken) {
+      token = req.user.agentNexusToken;
+      logger.info(`[loginController] Using AgentNexus token for user ${req.user.email}`);
+    } else {
+      token = await setAuthTokens(req.user._id, res);
+    }
 
     return res.status(200).send({ token, user });
   } catch (err) {

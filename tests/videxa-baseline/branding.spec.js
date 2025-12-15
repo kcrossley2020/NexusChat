@@ -30,9 +30,10 @@ test.describe('Videxa Branding - Baseline Verification', () => {
     await page.goto(BASE_URL);
   });
 
-  test('VB001: Page title should be "Nex by Videxa"', async ({ page }) => {
-    // Verify the browser tab title
-    await expect(page).toHaveTitle('Nex by Videxa');
+  test('VB001: Page title should contain "Nex by Videxa"', async ({ page }) => {
+    // Verify the browser tab title contains Videxa branding
+    // Note: Title may include suffix like "- Healthcare Claims" after React renders
+    await expect(page).toHaveTitle(/Nex by Videxa/);
   });
 
   test('VB002: Meta description should mention healthcare and Videxa', async ({ page }) => {

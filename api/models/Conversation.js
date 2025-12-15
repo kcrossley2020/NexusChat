@@ -1,7 +1,10 @@
 const { logger } = require('@librechat/data-schemas');
-const { createTempChatExpirationDate } = require('@librechat/api');
+const { createTempChatExpirationDate, isEnabled } = require('@librechat/api');
 const { getMessages, deleteMessages } = require('./Message');
 const { Conversation } = require('~/db/models');
+const SnowflakeChatService = require('~/server/services/SnowflakeChatService');
+
+const USE_SNOWFLAKE_STORAGE = isEnabled(process.env.USE_SNOWFLAKE_STORAGE);
 
 /**
  * Searches for a conversation by conversationId and returns a lean document with only conversationId and user.
@@ -25,6 +28,11 @@ const searchConversation = async (conversationId) => {
  */
 const getConvo = async (user, conversationId) => {
   try {
+    // Use Snowflake storage when enabled
+    if (USE_SNOWFLAKE_STORAGE) {
+      logger.debug('[getConvo] Using Snowflake storage via SnowflakeChatService');
+      return await SnowflakeChatService.getConversation(user, conversationId);
+    }
     return await Conversation.findOne({ user, conversationId }).lean();
   } catch (error) {
     logger.error('[getConvo] Error getting single conversation', error);
@@ -90,6 +98,44 @@ module.exports = {
     try {
       if (metadata?.context) {
         logger.debug(`[saveConvo] ${metadata.context}`);
+      }
+
+      // Use Snowflake storage when enabled
+      if (USE_SNOWFLAKE_STORAGE) {
+        logger.debug('[saveConvo] Using Snowflake storage via SnowflakeChatService');
+        const authToken = req.user?.agentNexusToken || req.headers?.authorization?.replace('Bearer ', '');
+
+        // Create or update conversation in Snowflake
+        const result = await SnowflakeChatService.createConversation(
+          {
+            conversationId: newConversationId || conversationId,
+            userId: req.user.id,
+            title: convo.title || 'New Chat',
+            endpoint: convo.endpoint,
+            model: convo.model,
+            ...convo,
+          },
+          authToken
+        );
+
+        // Check if storage failed and log warning for monitoring
+        if (result._storageFailed) {
+          logger.warn('[saveConvo] Snowflake storage failed - conversation not persisted', {
+            conversationId: newConversationId || conversationId,
+            errorCode: result._storageErrorCode,
+            error: result._storageError,
+          });
+        }
+
+        return {
+          ...convo,
+          ...result,
+          conversationId: result.conversationId || newConversationId || conversationId,
+          user: req.user.id,
+          messages: [],
+          createdAt: result.createdAt || new Date(),
+          updatedAt: result.updatedAt || new Date(),
+        };
       }
 
       const messages = await getMessages({ conversationId }, '_id');
@@ -159,6 +205,21 @@ module.exports = {
     user,
     { cursor, limit = 25, isArchived = false, tags, search, order = 'desc' } = {},
   ) => {
+    // Use Snowflake storage when enabled
+    if (USE_SNOWFLAKE_STORAGE) {
+      logger.debug('[getConvosByCursor] Using Snowflake storage via SnowflakeChatService');
+      try {
+        const result = await SnowflakeChatService.listConversations(
+          user,
+          { cursor, limit, isArchived, tags, search, order }
+        );
+        return result;
+      } catch (error) {
+        logger.error('[getConvosByCursor] Snowflake error, returning empty', error);
+        return { conversations: [], nextCursor: null };
+      }
+    }
+
     const filters = [{ user }];
     if (isArchived) {
       filters.push({ isArchived: true });
@@ -291,6 +352,17 @@ module.exports = {
    */
   deleteConvos: async (user, filter) => {
     try {
+      // Use Snowflake storage when enabled
+      if (USE_SNOWFLAKE_STORAGE) {
+        logger.debug('[deleteConvos] Using Snowflake storage via SnowflakeChatService');
+        const conversationId = filter.conversationId;
+        if (conversationId) {
+          const result = await SnowflakeChatService.deleteConversation(user, conversationId);
+          return result;
+        }
+        throw new Error('Conversation ID required for Snowflake deletion');
+      }
+
       const userFilter = { ...filter, user };
       const conversations = await Conversation.find(userFilter).select('conversationId');
       const conversationIds = conversations.map((c) => c.conversationId);

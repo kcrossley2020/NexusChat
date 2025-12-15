@@ -43,7 +43,11 @@ router.get('/', async function (req, res) {
     return today.getMonth() === 1 && today.getDate() === 11;
   };
 
-  const instanceProject = await getProjectByName(Constants.GLOBAL_PROJECT_NAME, '_id');
+  // Skip MongoDB project lookup when using Snowflake storage
+  const USE_SNOWFLAKE_STORAGE = isEnabled(process.env.USE_SNOWFLAKE_STORAGE);
+  const instanceProject = USE_SNOWFLAKE_STORAGE
+    ? { _id: 'snowflake-default' }
+    : await getProjectByName(Constants.GLOBAL_PROJECT_NAME, '_id');
 
   const ldap = getLdapConfig();
 
