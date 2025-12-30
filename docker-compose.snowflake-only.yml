@@ -24,10 +24,15 @@ services:
       - APP_TITLE=Nex by Videxa - Healthcare Claims
       - DOMAIN_SERVER=${DOMAIN_SERVER:-http://localhost:3080}
 
-      # Snowflake Backend (replaces MongoDB)
+      # Snowflake Backend (replaces MongoDB for conversations AND users)
       - USE_SNOWFLAKE_STORAGE=true
+      - USE_SNOWFLAKE_USERS=true
       - AGENTNEXUS_API_URL=${AGENTNEXUS_API_URL:-http://host.docker.internal:3050}
       - AGENTNEXUS_API_KEY=${AGENTNEXUS_API_KEY}
+
+      # Unified Authentication - AgentNexus frontend for password reset
+      # When set, NexusChat redirects forgot-password to AgentNexus frontend
+      - AGENTNEXUS_FRONTEND_URL=${AGENTNEXUS_FRONTEND_URL:-http://localhost:3000}
 
       # Password Reset (via AgentNexus backend)
       - ALLOW_PASSWORD_RESET=true

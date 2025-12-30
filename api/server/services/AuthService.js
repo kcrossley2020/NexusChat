@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const { webcrypto } = require('node:crypto');
 const { logger } = require('@librechat/data-schemas');
 const { isEnabled, checkEmailConfig, isEmailDomainAllowed } = require('@librechat/api');
@@ -27,6 +28,8 @@ const { sendEmail } = require('~/server/utils');
 const domains = {
   client: process.env.DOMAIN_CLIENT,
   server: process.env.DOMAIN_SERVER,
+  // AgentNexus frontend URL for shared authentication (password reset)
+  agentNexusFrontend: process.env.AGENTNEXUS_FRONTEND_URL,
 };
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -248,6 +251,10 @@ const registerUser = async (user, additionalData = {}) => {
 /**
  * Request password reset
  * @param {ServerRequest} req
+ *
+ * When AGENTNEXUS_FRONTEND_URL and AGENTNEXUS_API_URL are configured,
+ * delegates password reset to the AgentNexus backend API for shared authentication.
+ * This ensures tokens are stored in Snowflake and validated by the AgentNexus backend.
  */
 const requestPasswordReset = async (req) => {
   const { email } = req.body;
@@ -258,10 +265,44 @@ const requestPasswordReset = async (req) => {
     error.message = 'Email domain not allowed';
     return error;
   }
-  const user = await findUser({ email }, 'email _id');
-  const emailEnabled = checkEmailConfig();
 
   logger.warn(`[requestPasswordReset] [Password reset request initiated] [Email: ${email}]`);
+
+  // Check if shared authentication is enabled (AgentNexus API configured)
+  const agentNexusApiUrl = process.env.AGENTNEXUS_API_URL;
+  const agentNexusFrontendUrl = process.env.AGENTNEXUS_FRONTEND_URL;
+
+  if (agentNexusApiUrl && agentNexusFrontendUrl) {
+    // Delegate password reset to AgentNexus backend API for shared auth
+    logger.info(`[requestPasswordReset] Delegating to AgentNexus API [Email: ${email}]`);
+    try {
+      const response = await axios.post(
+        `${agentNexusApiUrl}/auth/request-password-reset`,
+        { email },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000, // 10 second timeout
+        },
+      );
+
+      logger.info(
+        `[requestPasswordReset] AgentNexus API response [Email: ${email}] [Status: ${response.status}] [ResetDomain: ${agentNexusFrontendUrl}]`,
+      );
+
+      // Return the same message format as AgentNexus backend
+      return {
+        message: 'If an account with that email exists, a password reset link has been sent to it.',
+      };
+    } catch (apiError) {
+      logger.error(`[requestPasswordReset] AgentNexus API error [Email: ${email}]`, apiError.message || apiError);
+      // Fall through to local handling as backup
+      logger.warn(`[requestPasswordReset] Falling back to local password reset [Email: ${email}]`);
+    }
+  }
+
+  // Local password reset (when shared auth is not configured or API failed)
+  const user = await findUser({ email }, 'email _id');
+  const emailEnabled = checkEmailConfig();
 
   if (!user) {
     logger.warn(`[requestPasswordReset] [No user found] [Email: ${email}] [IP: ${req.ip}]`);
@@ -281,6 +322,7 @@ const requestPasswordReset = async (req) => {
     expiresIn: 900,
   });
 
+  // Use NexusChat client URL for local password reset
   const link = `${domains.client}/reset-password?token=${resetToken}&userId=${user._id}`;
 
   if (emailEnabled) {
@@ -296,7 +338,7 @@ const requestPasswordReset = async (req) => {
       template: 'requestPasswordReset.handlebars',
     });
     logger.info(
-      `[requestPasswordReset] Link emailed. [Email: ${email}] [ID: ${user._id}] [IP: ${req.ip}]`,
+      `[requestPasswordReset] Link emailed. [Email: ${email}] [ID: ${user._id}] [IP: ${req.ip}] [ResetDomain: ${domains.client}]`,
     );
   } else {
     logger.info(
@@ -313,12 +355,48 @@ const requestPasswordReset = async (req) => {
 /**
  * Reset Password
  *
- * @param {*} userId
- * @param {String} token
- * @param {String} password
- * @returns
+ * Handles password reset for both:
+ * 1. Unified Snowflake auth (token-only, delegated to AgentNexus API)
+ * 2. Legacy local auth (token + userId, stored in MongoDB)
+ *
+ * @param {String|null} userId - User ID (null/empty for unified auth)
+ * @param {String} token - Reset token
+ * @param {String} password - New password
+ * @returns {Object|Error}
  */
 const resetPassword = async (userId, token, password) => {
+  // Check if this is a unified Snowflake auth reset (token-only, no userId)
+  const agentNexusApiUrl = process.env.AGENTNEXUS_API_URL;
+  const useUnifiedAuth = agentNexusApiUrl && process.env.AGENTNEXUS_FRONTEND_URL;
+
+  // If no userId provided and unified auth is configured, delegate to AgentNexus
+  if ((!userId || userId === 'undefined' || userId === 'null') && useUnifiedAuth) {
+    logger.info('[resetPassword] Delegating to AgentNexus API (unified Snowflake auth)');
+    try {
+      const response = await axios.post(
+        `${agentNexusApiUrl}/auth/reset-password`,
+        { token, password },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000,
+        },
+      );
+
+      if (response.data && response.data.success) {
+        logger.info('[resetPassword] Password reset successful via AgentNexus API');
+        return { message: 'Password reset was successful' };
+      } else {
+        logger.warn('[resetPassword] AgentNexus API returned error:', response.data);
+        return new Error(response.data?.detail || 'Password reset failed');
+      }
+    } catch (apiError) {
+      logger.error('[resetPassword] AgentNexus API error:', apiError.response?.data || apiError.message);
+      const errorMessage = apiError.response?.data?.detail || 'Invalid or expired password reset token';
+      return new Error(errorMessage);
+    }
+  }
+
+  // Legacy local auth flow (requires userId)
   let passwordResetToken = await findToken(
     {
       userId,

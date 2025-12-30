@@ -679,6 +679,8 @@ export type TStartupConfig = {
   >;
   mcpPlaceholder?: string;
   conversationImportMaxFileSize?: number;
+  /** AgentNexus frontend URL for unified authentication - password reset redirect */
+  agentNexusFrontendUrl?: string | null;
 };
 
 export enum OCRStrategy {

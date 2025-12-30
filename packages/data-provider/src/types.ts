@@ -453,7 +453,7 @@ export type TRequestPasswordReset = {
 };
 
 export type TResetPassword = {
-  userId: string;
+  userId?: string; // Optional for unified Snowflake auth (token-only resets)
   token: string;
   password: string;
   confirm_password?: string;

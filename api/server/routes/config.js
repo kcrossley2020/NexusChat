@@ -126,6 +126,9 @@ router.get('/', async function (req, res) {
       conversationImportMaxFileSize: process.env.CONVERSATION_IMPORT_MAX_FILE_SIZE_BYTES
         ? parseInt(process.env.CONVERSATION_IMPORT_MAX_FILE_SIZE_BYTES, 10)
         : 0,
+      // Unified Authentication - AgentNexus frontend URL for password reset redirect
+      // When set, NexusChat will redirect forgot-password to AgentNexus frontend
+      agentNexusFrontendUrl: process.env.AGENTNEXUS_FRONTEND_URL || null,
     };
 
     const minPasswordLength = parseInt(process.env.MIN_PASSWORD_LENGTH, 10);

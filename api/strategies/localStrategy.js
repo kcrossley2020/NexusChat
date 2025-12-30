@@ -1,9 +1,10 @@
 const axios = require('axios');
+const bcrypt = require('bcryptjs');
 const { logger } = require('@librechat/data-schemas');
 const { errorsToString } = require('librechat-data-provider');
 const { isEnabled, checkEmailConfig } = require('@librechat/api');
 const { Strategy: PassportLocalStrategy } = require('passport-local');
-const { findUser, comparePassword, updateUser } = require('~/models');
+const { findUser, comparePassword, updateUser, SnowflakeUserService } = require('~/models');
 const { loginSchema } = require('./validators');
 
 // Unix timestamp for 2024-06-07 15:20:18 Eastern Time
@@ -20,8 +21,9 @@ async function validateLoginRequest(req) {
 
 /**
  * Authenticate user via AgentNexus API (Snowflake backend)
+ * Used when USE_SNOWFLAKE_STORAGE is enabled but unified user management is not
  */
-async function authenticateViaAgentNexus(email, password) {
+async function authenticateViaAgentNexusAPI(email, password) {
   try {
     const response = await axios.post(
       `${AGENTNEXUS_API_URL}/auth/login`,
@@ -35,10 +37,10 @@ async function authenticateViaAgentNexus(email, password) {
         _id: response.data.user_id,
         email: email,
         emailVerified: true, // AgentNexus verifies this
-        name: email.split('@')[0], // Use email prefix as name
-        username: email.split('@')[0],
-        avatar: null,
-        role: 'user',
+        name: response.data.name || email.split('@')[0],
+        username: response.data.username || email.split('@')[0],
+        avatar: response.data.avatar || null,
+        role: response.data.role || 'user',
         provider: 'local',
         // Store the AgentNexus token for future use
         agentNexusToken: response.data.token,
@@ -58,6 +60,62 @@ async function authenticateViaAgentNexus(email, password) {
   }
 }
 
+/**
+ * Authenticate user via unified Snowflake user management
+ * Uses the SnowflakeUserService which calls the NexusChat-specific API endpoints
+ */
+async function authenticateViaSnowflakeUsers(email, password) {
+  try {
+    // Find user in Snowflake (includes password hash)
+    const user = await SnowflakeUserService.findUserByEmail(email);
+
+    if (!user) {
+      logger.warn(`[Snowflake Auth] User not found: ${email}`);
+      return null;
+    }
+
+    // Check if account is locked
+    if (user.accountLocked) {
+      const now = new Date();
+      if (user.lockedUntil && new Date(user.lockedUntil) > now) {
+        logger.warn(`[Snowflake Auth] Account locked: ${email}`);
+        return { locked: true, lockedUntil: user.lockedUntil };
+      }
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      logger.warn(`[Snowflake Auth] Invalid password for: ${email}`);
+      // TODO: Track failed login attempts
+      return null;
+    }
+
+    // Return user in NexusChat format (already transformed by SnowflakeUserService)
+    return {
+      _id: user._id,
+      id: user._id,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      name: user.name,
+      username: user.username,
+      avatar: user.avatar,
+      role: user.role,
+      provider: user.provider || 'local',
+      twoFactorEnabled: user.twoFactorEnabled,
+      plugins: user.plugins,
+      termsAccepted: user.termsAccepted,
+      createdAt: user.createdAt,
+      // Flag for unified auth
+      useSnowflakeAuth: true,
+    };
+  } catch (error) {
+    logger.error(`[Snowflake Auth] Error: ${error.message}`);
+    return null;
+  }
+}
+
 async function passportLogin(req, email, password, done) {
   try {
     const validationError = await validateLoginRequest(req);
@@ -67,10 +125,36 @@ async function passportLogin(req, email, password, done) {
       return done(null, false, { message: validationError });
     }
 
-    // Use AgentNexus API for authentication when in Snowflake mode
+    // Priority 1: Unified Snowflake user management (new architecture)
+    if (SnowflakeUserService.isSnowflakeUsersEnabled()) {
+      logger.info(`[Login] Using unified Snowflake authentication for ${email}`);
+      const result = await authenticateViaSnowflakeUsers(email.trim(), password);
+
+      if (result && result.locked) {
+        logger.error(`[Login] [Account locked] [Username: ${email}] [Request-IP: ${req.ip}]`);
+        return done(null, false, { message: 'Account is temporarily locked. Please try again later.' });
+      }
+
+      if (!result) {
+        logger.error(`[Login] [Login failed] [Username: ${email}] [Request-IP: ${req.ip}]`);
+        return done(null, false, { message: 'Invalid email or password.' });
+      }
+
+      // Check email verification
+      const unverifiedAllowed = isEnabled(process.env.ALLOW_UNVERIFIED_EMAIL_LOGIN);
+      if (!result.emailVerified && !unverifiedAllowed) {
+        logger.error(`[Login] [Email not verified] [Username: ${email}] [Request-IP: ${req.ip}]`);
+        return done(null, result, { message: 'Email not verified.' });
+      }
+
+      logger.info(`[Login] [Login successful] [Username: ${email}] [Request-IP: ${req.ip}]`);
+      return done(null, result);
+    }
+
+    // Priority 2: AgentNexus API authentication (Snowflake storage for conversations only)
     if (USE_SNOWFLAKE_STORAGE) {
       logger.info(`[Login] Using Snowflake authentication via AgentNexus API for ${email}`);
-      const user = await authenticateViaAgentNexus(email.trim(), password);
+      const user = await authenticateViaAgentNexusAPI(email.trim(), password);
 
       if (!user) {
         logger.error(`[Login] [Login failed] [Username: ${email}] [Request-IP: ${req.ip}]`);
@@ -81,7 +165,7 @@ async function passportLogin(req, email, password, done) {
       return done(null, user);
     }
 
-    // Legacy MongoDB authentication
+    // Priority 3: Legacy MongoDB authentication
     const user = await findUser({ email: email.trim() }, '+password');
     if (!user) {
       logError('Passport Local Strategy - User Not Found', { email });

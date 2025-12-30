@@ -21,8 +21,18 @@ function ResetPassword() {
   const resetPassword = useResetPasswordMutation();
   const { setError, setHeaderText, startupConfig } = useOutletContext<TLoginLayoutContext>();
 
+  // Check if this is a unified auth reset (token-only, no userId in URL)
+  const token = params.get('token') ?? '';
+  const userId = params.get('userId') ?? '';
+  const isUnifiedAuthReset = token && !userId;
+
   const onSubmit = (data: TResetPassword) => {
-    resetPassword.mutate(data, {
+    // For unified auth, userId may be empty - backend will handle it
+    const submitData = {
+      ...data,
+      userId: data.userId || '', // Ensure userId is at least empty string
+    };
+    resetPassword.mutate(submitData, {
       onError: () => {
         setError('com_auth_error_invalid_reset_token');
       },
@@ -66,14 +76,17 @@ function ResetPassword() {
           <input
             type="hidden"
             id="token"
-            value={params.get('token') ?? ''}
+            value={token}
             {...register('token', { required: 'Unable to process: No valid reset token' })}
           />
           <input
             type="hidden"
             id="userId"
-            value={params.get('userId') ?? ''}
-            {...register('userId', { required: 'Unable to process: No valid user id' })}
+            value={userId}
+            {...register('userId', {
+              // userId is optional for unified Snowflake auth (token-only resets)
+              required: isUnifiedAuthReset ? false : 'Unable to process: No valid user id',
+            })}
           />
           <input
             type="password"
@@ -139,7 +152,7 @@ function ResetPassword() {
             {errors.token.message}
           </span>
         )}
-        {errors.userId && (
+        {errors.userId && !isUnifiedAuthReset && (
           <span role="alert" className="mt-1 text-sm text-red-500 dark:text-red-900">
             {errors.userId.message}
           </span>

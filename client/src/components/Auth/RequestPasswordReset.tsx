@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useEffect } from 'react';
 import { Spinner, Button } from '@librechat/client';
 import { useOutletContext } from 'react-router-dom';
 import { useRequestPasswordResetMutation } from 'librechat-data-provider/react-query';
@@ -46,6 +46,28 @@ function RequestPasswordReset() {
 
   const requestPasswordReset = useRequestPasswordResetMutation();
   const { isLoading } = requestPasswordReset;
+
+  // Unified Authentication: Redirect to AgentNexus frontend if configured
+  // This delegates the password reset flow entirely to AgentNexus
+  useEffect(() => {
+    if (startupConfig?.agentNexusFrontendUrl) {
+      const agentNexusForgotPasswordUrl = `${startupConfig.agentNexusFrontendUrl}/forgot-password`;
+      // Redirect to AgentNexus forgot-password page
+      window.location.href = agentNexusForgotPasswordUrl;
+    }
+  }, [startupConfig?.agentNexusFrontendUrl]);
+
+  // Show loading while redirecting to AgentNexus
+  if (startupConfig?.agentNexusFrontendUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <Spinner />
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          {localize('com_auth_redirecting') || 'Redirecting...'}
+        </p>
+      </div>
+    );
+  }
 
   const onSubmit = (data: TRequestPasswordReset) => {
     requestPasswordReset.mutate(data, {
