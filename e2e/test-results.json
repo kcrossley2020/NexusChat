@@ -1,0 +1,291 @@
+{
+  "config": {
+    "configFile": "C:\\videxa-repos\\NexusChat\\e2e\\playwright.config.screenshots.ts",
+    "rootDir": "C:/videxa-repos/NexusChat/e2e/specs",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "C:\\videxa-repos\\NexusChat\\e2e\\setup\\screenshot-global-setup.ts",
+    "globalTeardown": "C:\\videxa-repos\\NexusChat\\e2e\\setup\\screenshot-global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never",
+          "attachmentsBaseURL": "./screenshots/"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "list",
+        {
+          "printSteps": true
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/videxa-repos/NexusChat/e2e/specs/.test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-desktop",
+        "name": "chromium-desktop",
+        "testDir": "C:/videxa-repos/NexusChat/e2e/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/videxa-repos/NexusChat/e2e/specs/.test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox-desktop",
+        "name": "firefox-desktop",
+        "testDir": "C:/videxa-repos/NexusChat/e2e/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/videxa-repos/NexusChat/e2e/specs/.test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "C:/videxa-repos/NexusChat/e2e/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/videxa-repos/NexusChat/e2e/specs/.test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "C:/videxa-repos/NexusChat/e2e/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "auth\\tc-auth-001-login-ui.spec.ts",
+      "file": "auth/tc-auth-001-login-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UC-AUTH-001: Login User Interface",
+          "file": "auth/tc-auth-001-login-ui.spec.ts",
+          "line": 40,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-AUTH-001-UI-01: Complete login flow with visual screenshots",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-desktop",
+                  "projectName": "chromium-desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6628,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Setup: Created test user e2e-ui-login-1766368348281@example.com\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-1-step-01-landing-page.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-2-step-02-login-page.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-3-step-03-email-focus.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-4-step-04-email-entered.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-5-step-05-password-focus.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-6-step-06-password-entered.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-7-step-07-ready-to-submit.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-8-step-08-submitting.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-9-step-09-login-success.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "📸 Captured: tc-auth-001-ui-01--complete-login-flow-with-visual-screenshots-step-10-step-10-authenticated-dashboard.png (baseline exists for comparison)\n"
+                        },
+                        {
+                          "text": "✅ TC-AUTH-001-UI-01 PASSED with 10 screenshots captured\n"
+                        },
+                        {
+                          "text": "Cleanup: Deleted test user e2e-ui-login-1766368348281@example.com\n"
+                        },
+                        {
+                          "text": "📄 Documentation generated: C:\\videxa-repos\\NexusChat\\e2e\\generated-docs\\UC-AUTH-001-UI-Documentation.html\n"
+                        },
+                        {
+                          "text": "\n📚 UI Documentation generated: C:\\videxa-repos\\NexusChat\\e2e\\generated-docs\\UC-AUTH-001-UI-Documentation.html\n\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-22T01:52:28.260Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "Step 1: step-01-landing-page",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-1-step-01-landing-page-d746a2eaae02fdc824a4c38e13694359eb475ce3.png"
+                        },
+                        {
+                          "name": "Step 2: step-02-login-page",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-2-step-02-login-page-df269743b500ab72c68bd4b573ba15437cc914c4.png"
+                        },
+                        {
+                          "name": "Step 3: step-03-email-focus",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-3-step-03-email-focus-ec7c59431c78943d4798f6e4ad882c30eb670403.png"
+                        },
+                        {
+                          "name": "Step 4: step-04-email-entered",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-4-step-04-email-entered-a468e1834c60d918d57e905cef79c822cc020fe7.png"
+                        },
+                        {
+                          "name": "Step 5: step-05-password-focus",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-5-step-05-password-focus-e5e13e67a3e6aa8798f26ca57cfc224b5c6c110f.png"
+                        },
+                        {
+                          "name": "Step 6: step-06-password-entered",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-6-step-06-password-entered-646e734d1489bd6e66bf40e6242227b6fce62e8a.png"
+                        },
+                        {
+                          "name": "Step 7: step-07-ready-to-submit",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-7-step-07-ready-to-submit-917c1476ba50d6873bf357642329f86400bedfb0.png"
+                        },
+                        {
+                          "name": "Step 8: step-08-submitting",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-8-step-08-submitting-743061c6663b1523cea443e09358de41d522bf52.png"
+                        },
+                        {
+                          "name": "Step 9: step-09-login-success",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-9-step-09-login-success-1bc17a7a43c9bf96dba2d34ed37acaef726b8f85.png"
+                        },
+                        {
+                          "name": "Step 10: step-10-authenticated-dashboard",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\attachments\\Step-10-step-10-authenticated-dashboard-df02f2ae8bf5c6f1bbdcafe9e45d0dd5f1c4fc2e.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\test-finished-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\videxa-repos\\NexusChat\\e2e\\specs\\.test-results\\auth-tc-auth-001-login-ui--2b903-low-with-visual-screenshots-chromium-desktop\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fb0296b153d6f844a77f-04bef2b9cb48389f0f3a",
+              "file": "auth/tc-auth-001-login-ui.spec.ts",
+              "line": 74,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-22T01:52:27.757Z",
+    "duration": 8896.536,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

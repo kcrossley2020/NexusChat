@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusChat Agent Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #1a365d;
+      --secondary-color: #2b6cb0;
+      --accent-color: #f6ad55;
+      --success-color: #48bb78;
+      --warning-color: #ed8936;
+      --error-color: #fc8181;
+      --bg-color: #1a202c;
+      --card-bg: #2d3748;
+      --text-color: #e2e8f0;
+      --text-muted: #a0aec0;
+      --border-color: #4a5568;
+      --code-bg: #1e1e1e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      padding: 3rem 2rem;
+      text-align: center;
+      border-bottom: 4px solid var(--accent-color);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Navigation */
+    .nav {
+      background: var(--card-bg);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      list-style: none;
+      max-width: 1400px;
+      margin: 0 auto;
+      justify-content: center;
+    }
+
+    .nav-list a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.25rem 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .nav-list a:hover {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Sections */
+    section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+    }
+
+    section h2 {
+      color: var(--accent-color);
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    section h3 {
+      color: var(--text-color);
+      font-size: 1.25rem;
+      margin: 1.5rem 0 1rem;
+    }
+
+    section h4 {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin: 1rem 0 0.5rem;
+    }
+
+    /* Paragraphs */
+    p {
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+
+    /* Lists */
+    ul, ol {
+      margin: 1rem 0 1rem 1.5rem;
+      color: var(--text-muted);
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Diagrams */
+    .diagram-container {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Code */
+    code {
+      background: var(--code-bg);
+      color: #e06c75;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85em;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    pre code {
+      background: none;
+      color: #abb2bf;
+      padding: 0;
+    }
+
+    /* Syntax highlighting */
+    .keyword { color: #c678dd; }
+    .string { color: #98c379; }
+    .number { color: #d19a66; }
+    .comment { color: #5c6370; font-style: italic; }
+    .property { color: #e06c75; }
+    .type { color: #e5c07b; }
+
+    /* Callout boxes */
+    .callout {
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: rgba(43, 108, 176, 0.2);
+      border-color: var(--secondary-color);
+    }
+
+    .callout-warning {
+      background: rgba(237, 137, 54, 0.2);
+      border-color: var(--warning-color);
+    }
+
+    .callout-success {
+      background: rgba(72, 187, 120, 0.2);
+      border-color: var(--success-color);
+    }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .grid-card {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .grid-card h4 {
+      color: var(--accent-color);
+      margin-top: 0;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .badge-primary { background: var(--secondary-color); color: white; }
+    .badge-success { background: var(--success-color); color: white; }
+    .badge-warning { background: var(--warning-color); color: white; }
+    .badge-accent { background: var(--accent-color); color: var(--primary-color); }
+
+    /* Flow arrows */
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .flow-number {
+      background: var(--secondary-color);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* File reference table */
+    .file-ref {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #61afef;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.75rem;
+      }
+
+      .main-content {
+        padding: 1rem;
+      }
+
+      section {
+        padding: 1.5rem;
+      }
+
+      .nav-list {
+        justify-content: flex-start;
+      }
+
+      pre {
+        padding: 1rem;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>NexusChat Agent Architecture</h1>
+    <p>Comprehensive documentation of the Agent system architecture, storage, APIs, and usage patterns.</p>
+  </header>
+
+  <nav class="nav">
+    <ul class="nav-list">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#data-model">Data Model</a></li>
+      <li><a href="#storage">Storage</a></li>
+      <li><a href="#api">API Endpoints</a></li>
+      <li><a href="#lifecycle">Lifecycle</a></li>
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#mcp">MCP Integration</a></li>
+      <li><a href="#actions">Custom Actions</a></li>
+      <li><a href="#versioning">Versioning</a></li>
+      <li><a href="#permissions">Permissions</a></li>
+      <li><a href="#marketplace">Marketplace</a></li>
+      <li><a href="#frontend">Frontend</a></li>
+      <li><a href="#examples">Examples</a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <!-- Section 1: Overview -->
+    <section id="overview">
+      <h2>1. Overview</h2>
+
+      <p>Agents in NexusChat are <strong>configuration documents</strong> stored in Snowflake that define AI assistant behaviors. They are NOT executable code files - instead, they specify which AI model to use, system instructions, available tools, and access permissions.</p>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph User["User Interaction"]
+        U[User Message]
+    end
+
+    subgraph Agent["Agent Configuration"]
+        AC[Agent Document]
+        AC --> P[Provider]
+        AC --> M[Model ID]
+        AC --> I[System Prompt]
+        AC --> T[Tool List]
+    end
+
+    subgraph Execution["Execution Layer"]
+        LLM[LLM API Call]
+        TE[Tool Execution]
+    end
+
+    U --> AC
+    AC --> LLM
+    LLM --> |tool_calls| TE
+    TE --> |results| LLM
+    LLM --> |response| U
+        </pre>
+      </div>
+
+      <h3>Key Concepts</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Concept</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-primary">Agent</span></td>
+            <td>Configuration document defining AI behavior</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-accent">Ephemeral Agent</span></td>
+            <td>Temporary, in-memory agent for quick interactions</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-success">Tools</span></td>
+            <td>Built-in capabilities (web_search, execute_code, file_search)</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-warning">Actions</span></td>
+            <td>Custom API integrations via OpenAPI specs</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-primary">MCP Servers</span></td>
+            <td>External tool providers via Model Context Protocol</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-accent">Versions</span></td>
+            <td>Historical snapshots of agent configurations</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 2: Data Model -->
+    <section id="data-model">
+      <h2>2. Agent Data Model</h2>
+
+      <p>The agent schema defines all configurable properties. Located at: <code class="file-ref">packages/data-schemas/src/schema/agent.ts</code></p>
+
+      <div class="grid-2">
+        <div class="grid-card">
+          <h4>Identity Fields</h4>
+          <ul>
+            <li><code>id</code> - Unique ID: "agent_{nanoid}"</li>
+            <li><code>name</code> - Display name</li>
+            <li><code>description</code> - Short description</li>
+            <li><code>avatar</code> - Profile image {filepath, source}</li>
+          </ul>
+        </div>
+
+        <div class="grid-card">
+          <h4>AI Configuration</h4>
+          <ul>
+            <li><code>provider</code> - "openai", "anthropic", etc.</li>
+            <li><code>model</code> - "gpt-4-turbo", "claude-3-opus"</li>
+            <li><code>instructions</code> - System prompt</li>
+            <li><code>model_parameters</code> - temperature, max_tokens</li>
+          </ul>
+        </div>
+
+        <div class="grid-card">
+          <h4>Capabilities</h4>
+          <ul>
+            <li><code>tools</code> - Enabled tools array</li>
+            <li><code>actions</code> - Custom API actions</li>
+            <li><code>agent_ids</code> - Sub-agents for chaining</li>
+            <li><code>artifacts</code> - Rendering mode</li>
+          </ul>
+        </div>
+
+        <div class="grid-card">
+          <h4>Ownership & Access</h4>
+          <ul>
+            <li><code>author</code> - Creator's user ID</li>
+            <li><code>projectIds</code> - Associated projects</li>
+            <li><code>is_promoted</code> - Featured flag</li>
+            <li><code>category</code> - Agent category</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Full Schema Structure</h3>
+      <pre><code><span class="keyword">interface</span> <span class="type">IAgent</span> {
+  <span class="comment">// Identity</span>
+  <span class="property">id</span>: <span class="type">string</span>;                    <span class="comment">// "agent_{nanoid}"</span>
+  <span class="property">name</span>?: <span class="type">string</span>;
+  <span class="property">description</span>?: <span class="type">string</span>;
+  <span class="property">avatar</span>?: { <span class="property">filepath</span>: <span class="type">string</span>; <span class="property">source</span>: <span class="type">string</span>; };
+
+  <span class="comment">// AI Configuration</span>
+  <span class="property">provider</span>: <span class="type">string</span>;              <span class="comment">// Required</span>
+  <span class="property">model</span>: <span class="type">string</span>;                 <span class="comment">// Required</span>
+  <span class="property">instructions</span>?: <span class="type">string</span>;
+  <span class="property">model_parameters</span>?: {
+    <span class="property">temperature</span>?: <span class="type">number</span>;
+    <span class="property">max_tokens</span>?: <span class="type">number</span>;
+    <span class="property">top_p</span>?: <span class="type">number</span>;
+  };
+
+  <span class="comment">// Capabilities</span>
+  <span class="property">tools</span>?: <span class="type">string</span>[];
+  <span class="property">actions</span>?: <span class="type">string</span>[];
+  <span class="property">agent_ids</span>?: <span class="type">string</span>[];
+  <span class="property">recursion_limit</span>?: <span class="type">number</span>;
+  <span class="property">end_after_tools</span>?: <span class="type">boolean</span>;
+  <span class="property">conversation_starters</span>?: <span class="type">string</span>[];
+  <span class="property">tool_resources</span>?: {
+    <span class="property">file_search</span>?: { <span class="property">file_ids</span>: <span class="type">string</span>[] };
+    <span class="property">execute_code</span>?: { <span class="property">file_ids</span>: <span class="type">string</span>[] };
+  };
+
+  <span class="comment">// Ownership</span>
+  <span class="property">author</span>: <span class="type">ObjectId</span>;
+  <span class="property">projectIds</span>?: <span class="type">ObjectId</span>[];
+  <span class="property">versions</span>?: <span class="type">IAgentVersion</span>[];
+
+  <span class="comment">// Marketplace</span>
+  <span class="property">category</span>: <span class="type">string</span>;
+  <span class="property">is_promoted</span>?: <span class="type">boolean</span>;
+  <span class="property">support_contact</span>?: { <span class="property">name</span>?: <span class="type">string</span>; <span class="property">email</span>?: <span class="type">string</span>; };
+
+  <span class="comment">// Timestamps</span>
+  <span class="property">createdAt</span>: <span class="type">Date</span>;
+  <span class="property">updatedAt</span>: <span class="type">Date</span>;
+}</code></pre>
+    </section>
+
+    <!-- Section 3: Storage -->
+    <section id="storage">
+      <h2>3. Storage Architecture</h2>
+
+      <p>NexusChat uses <strong>Snowflake</strong> as the single source of truth for all data. Each organization has its own database with the NEXUSCHAT schema containing agent-related tables.</p>
+
+      <div class="callout callout-success">
+        <strong>Snowflake Benefits:</strong> Single source of truth, HIPAA compliance, SQL joins across healthcare claims, Time Travel backups, lower costs (no separate database hosting).
+      </div>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+erDiagram
+    AGENTS {
+        varchar AGENT_ID PK
+        varchar NAME
+        varchar PROVIDER
+        varchar MODEL
+        varchar AUTHOR_ID FK
+        variant PROJECT_IDS FK
+        boolean IS_PROMOTED
+        variant VERSIONS
+    }
+
+    PROJECTS {
+        varchar PROJECT_ID PK
+        varchar NAME
+        variant AGENT_IDS FK
+    }
+
+    ACTIONS {
+        varchar ACTION_ID PK
+        varchar AGENT_ID FK
+        variant METADATA
+    }
+
+    PERMISSIONS {
+        varchar PERMISSION_ID PK
+        varchar PRINCIPAL_TYPE
+        varchar RESOURCE_ID FK
+        varchar ACCESS_ROLE_ID
+    }
+
+    USERS {
+        varchar USER_ID PK
+        varchar EMAIL
+        varchar NAME
+    }
+
+    AGENTS ||--o{ ACTIONS : has
+    AGENTS }o--|| USERS : author
+    AGENTS }o--o{ PROJECTS : belongs_to
+    AGENTS ||--o{ PERMISSIONS : has
+        </pre>
+      </div>
+
+      <h3>Per-Organization Database Structure</h3>
+      <pre><code>HCS0001_DB/
+├── NEXUSCHAT/                  ← Agent & Chat Data
+│   ├── AGENTS
+│   ├── AGENT_VERSIONS
+│   ├── AGENT_ACTIONS
+│   ├── AGENT_PERMISSIONS
+│   ├── CONVERSATIONS
+│   ├── CHAT_MESSAGES
+│   └── USER_PREFERENCES
+├── CLAIMS/                     ← Healthcare Claims
+│   └── INSURANCE_CLAIMS
+├── PATIENTS/
+│   └── PATIENT_RECORDS
+└── CORTEX_DATA/               ← AI/ML Features
+    └── EMBEDDINGS</code></pre>
+
+      <h3>Storage Types</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Access</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-primary">User Agents</span></td>
+            <td><code>NEXUSCHAT.AGENTS</code> with <code>AUTHOR_ID</code> field</td>
+            <td>Owner and shared users</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-success">Global Agents</span></td>
+            <td><code>NEXUSCHAT.PROJECTS.AGENT_IDS</code> where name="instance"</td>
+            <td>All authenticated users</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-accent">Promoted Agents</span></td>
+            <td><code>NEXUSCHAT.AGENTS</code> with <code>IS_PROMOTED=TRUE</code></td>
+            <td>Featured in marketplace</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 4: API Endpoints -->
+    <section id="api">
+      <h2>4. API Endpoints</h2>
+
+      <p>Base route: <code>/api/agents</code> - All endpoints require JWT authentication.</p>
+
+      <h3>CRUD Operations</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Route</th>
+            <th>Permission</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-success">POST</span></td>
+            <td><code>/agents</code></td>
+            <td>USE + CREATE</td>
+            <td>Create new agent</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-primary">GET</span></td>
+            <td><code>/agents</code></td>
+            <td>USE</td>
+            <td>List agents with pagination</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-primary">GET</span></td>
+            <td><code>/agents/:id</code></td>
+            <td>VIEW</td>
+            <td>Get basic agent info</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-primary">GET</span></td>
+            <td><code>/agents/:id/expanded</code></td>
+            <td>EDIT</td>
+            <td>Get full agent config</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-warning">PATCH</span></td>
+            <td><code>/agents/:id</code></td>
+            <td>EDIT</td>
+            <td>Update agent</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-accent">DELETE</span></td>
+            <td><code>/agents/:id</code></td>
+            <td>DELETE</td>
+            <td>Delete agent</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Special Operations</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Route</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-success">POST</span></td>
+            <td><code>/agents/:id/duplicate</code></td>
+            <td>Clone agent with new ID</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-success">POST</span></td>
+            <td><code>/agents/:id/revert</code></td>
+            <td>Revert to previous version</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-success">POST</span></td>
+            <td><code>/agents/:id/avatar</code></td>
+            <td>Upload avatar image</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-primary">GET</span></td>
+            <td><code>/agents/categories</code></td>
+            <td>Get all categories</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Example: Create Agent</h3>
+      <pre><code><span class="keyword">POST</span> /api/agents
+<span class="property">Content-Type</span>: application/json
+
+{
+  <span class="string">"name"</span>: <span class="string">"Research Assistant"</span>,
+  <span class="string">"provider"</span>: <span class="string">"openai"</span>,
+  <span class="string">"model"</span>: <span class="string">"gpt-4-turbo"</span>,
+  <span class="string">"description"</span>: <span class="string">"Helps with research tasks"</span>,
+  <span class="string">"instructions"</span>: <span class="string">"You are a research assistant..."</span>,
+  <span class="string">"tools"</span>: [<span class="string">"web_search"</span>, <span class="string">"file_search"</span>],
+  <span class="string">"category"</span>: <span class="string">"research"</span>
+}
+
+<span class="comment">// Response: 201 Created</span>
+{
+  <span class="string">"id"</span>: <span class="string">"agent_abc123"</span>,
+  <span class="string">"name"</span>: <span class="string">"Research Assistant"</span>,
+  ...
+}</code></pre>
+    </section>
+
+    <!-- Section 5: Lifecycle -->
+    <section id="lifecycle">
+      <h2>5. Agent Lifecycle</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Snowflake
+    participant LLM
+
+    Note over User,LLM: Agent Creation
+    User->>Frontend: Fill agent form
+    Frontend->>API: POST /agents
+    API->>Snowflake: INSERT INTO AGENTS
+    API->>Snowflake: Grant OWNER permission
+    Snowflake-->>API: Agent record
+    API-->>Frontend: Agent response
+
+    Note over User,LLM: Agent Usage
+    User->>Frontend: Send message
+    Frontend->>API: POST /chat with agent_id
+    API->>Snowflake: Load agent config
+    API->>LLM: Build request with instructions
+    LLM-->>API: Response with tool_calls
+
+    alt Has Tool Calls
+        API->>API: Execute tools
+        API->>LLM: Continue with results
+        LLM-->>API: Final response
+    end
+
+    API-->>Frontend: Chat response
+    Frontend-->>User: Display message
+        </pre>
+      </div>
+
+      <h3>State Transitions</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+stateDiagram-v2
+    [*] --> Draft: Create
+    Draft --> Active: Save
+    Active --> Active: Update creates version
+    Active --> Shared: Add permissions
+    Shared --> Active: Remove permissions
+    Active --> Promoted: Admin promotes
+    Promoted --> Active: Admin demotes
+    Active --> Deleted: Delete
+    Deleted --> [*]
+        </pre>
+      </div>
+    </section>
+
+    <!-- Section 6: Tools -->
+    <section id="tools">
+      <h2>6. Tools & Capabilities</h2>
+
+      <h3>Built-in System Tools</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Description</th>
+            <th>Required Resources</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>web_search</code></td>
+            <td>Search the internet for information</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>execute_code</code></td>
+            <td>Run code in sandboxed environment</td>
+            <td>Optional: code files</td>
+          </tr>
+          <tr>
+            <td><code>file_search</code></td>
+            <td>Search uploaded documents via vector store</td>
+            <td>Required: file_ids</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Tool Resolution Flow</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TD
+    T[Tool Request] --> V{Valid Tool?}
+    V -->|System Tool| ST[Execute System Tool]
+    V -->|MCP Tool| MT[Route to MCP Server]
+    V -->|Action Tool| AT[Call External API]
+    V -->|Invalid| E[Return Error]
+
+    ST --> R[Return Result]
+    MT --> R
+    AT --> R
+        </pre>
+      </div>
+
+      <h3>Tool Configuration Example</h3>
+      <pre><code>{
+  <span class="string">"tools"</span>: [
+    <span class="string">"web_search"</span>,
+    <span class="string">"execute_code"</span>,
+    <span class="string">"file_search"</span>
+  ],
+  <span class="string">"tool_resources"</span>: {
+    <span class="string">"file_search"</span>: {
+      <span class="string">"file_ids"</span>: [<span class="string">"file_abc"</span>, <span class="string">"file_def"</span>]
+    },
+    <span class="string">"execute_code"</span>: {
+      <span class="string">"file_ids"</span>: [<span class="string">"file_xyz"</span>]
+    }
+  }
+}</code></pre>
+    </section>
+
+    <!-- Section 7: MCP Integration -->
+    <section id="mcp">
+      <h2>7. MCP Integration</h2>
+
+      <p>MCP (Model Context Protocol) allows external servers to provide tools to agents.</p>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart LR
+    subgraph NexusChat
+        Agent
+        MCPManager
+    end
+
+    subgraph External["External MCP Servers"]
+        GitHub[GitHub MCP]
+        Stripe[Stripe MCP]
+        Custom[Custom MCP]
+    end
+
+    Agent --> MCPManager
+    MCPManager <--> GitHub
+    MCPManager <--> Stripe
+    MCPManager <--> Custom
+        </pre>
+      </div>
+
+      <h3>MCP Tool Naming Convention</h3>
+      <pre><code><span class="comment">// MCP tool format</span>
+<span class="string">"${toolName}${mcp_delimiter}${serverName}"</span>
+
+<span class="comment">// Examples</span>
+<span class="string">"create_issue::github"</span>
+<span class="string">"create_customer::stripe"</span>
+<span class="string">"mcp__all::filesystem"</span>  <span class="comment">// All tools from server</span></code></pre>
+
+      <h3>Ephemeral Agent with MCP</h3>
+      <pre><code>{
+  <span class="string">"ephemeralAgent"</span>: {
+    <span class="string">"mcp"</span>: [<span class="string">"github"</span>, <span class="string">"stripe"</span>],  <span class="comment">// MCP servers</span>
+    <span class="string">"web_search"</span>: <span class="keyword">true</span>,
+    <span class="string">"execute_code"</span>: <span class="keyword">false</span>,
+    <span class="string">"file_search"</span>: <span class="keyword">false</span>
+  }
+}</code></pre>
+    </section>
+
+    <!-- Section 8: Custom Actions -->
+    <section id="actions">
+      <h2>8. Custom Actions</h2>
+
+      <p>Actions are custom API integrations defined via OpenAPI specifications.</p>
+
+      <h3>Action Structure</h3>
+      <pre><code><span class="keyword">interface</span> <span class="type">Action</span> {
+  <span class="property">action_id</span>: <span class="type">string</span>;      <span class="comment">// Unique ID</span>
+  <span class="property">agent_id</span>: <span class="type">string</span>;       <span class="comment">// Parent agent</span>
+  <span class="property">type</span>?: <span class="type">string</span>;
+  <span class="property">metadata</span>: {
+    <span class="property">domain</span>: <span class="type">string</span>;       <span class="comment">// "stripe", "shopify"</span>
+    <span class="property">api_key</span>?: <span class="type">string</span>;     <span class="comment">// Encrypted</span>
+    <span class="property">auth</span>?: <span class="type">ActionAuth</span>;
+    <span class="property">raw_spec</span>?: <span class="type">string</span>;    <span class="comment">// OpenAPI spec</span>
+    <span class="property">oauth_client_id</span>?: <span class="type">string</span>;     <span class="comment">// Encrypted</span>
+    <span class="property">oauth_client_secret</span>?: <span class="type">string</span>; <span class="comment">// Encrypted</span>
+  };
+  <span class="property">version</span>: <span class="type">number</span>;
+}</code></pre>
+
+      <h3>Action Endpoints</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Route</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-primary">GET</span></td>
+            <td><code>/agents/actions</code></td>
+            <td>List all user's actions</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-success">POST</span></td>
+            <td><code>/agents/actions/:agent_id</code></td>
+            <td>Add action to agent</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-accent">DELETE</span></td>
+            <td><code>/agents/actions/:agent_id/:action_id</code></td>
+            <td>Remove action from agent</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 9: Versioning -->
+    <section id="versioning">
+      <h2>9. Versioning System</h2>
+
+      <p>Agents automatically track version history when significant changes occur.</p>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TD
+    U[Update Request] --> C{Check Changes}
+    C -->|Fields Changed| D{Duplicate Check}
+    C -->|No Changes| N[Return Current]
+
+    D -->|Different| V[Create Version]
+    D -->|Identical| N
+
+    V --> S[Save Version Entry]
+    S --> R[Return Updated Agent]
+        </pre>
+      </div>
+
+      <h3>Version Entry Structure</h3>
+      <pre><code>{
+  <span class="comment">// All agent fields at this point in time</span>
+  <span class="property">name</span>: <span class="string">"Agent Name"</span>,
+  <span class="property">instructions</span>: <span class="string">"..."</span>,
+  <span class="property">tools</span>: [...],
+
+  <span class="comment">// Version metadata</span>
+  <span class="property">createdAt</span>: <span class="string">"2024-01-15T10:00:00Z"</span>,
+  <span class="property">updatedAt</span>: <span class="string">"2024-01-15T10:00:00Z"</span>,
+  <span class="property">updatedBy</span>: <span class="string">"user_123"</span>,
+  <span class="property">actionsHash</span>: <span class="string">"sha256..."</span>
+}</code></pre>
+
+      <h3>Version Operations</h3>
+      <div class="callout callout-info">
+        <strong>Revert to Version:</strong> POST /agents/{id}/revert with {"version_index": 2} restores the specified version state and creates a new version entry.
+      </div>
+
+      <div class="callout callout-warning">
+        <strong>Duplicate Prevention:</strong> The system compares new updates against the last version. If identical (excluding timestamps), no new version is created.
+      </div>
+    </section>
+
+    <!-- Section 10: Permissions -->
+    <section id="permissions">
+      <h2>10. Permissions & Sharing</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Roles["Access Roles"]
+        O[AGENT_OWNER]
+        E[AGENT_EDITOR]
+        V[AGENT_VIEWER]
+    end
+
+    subgraph Bits["Permission Bits"]
+        VIEW["VIEW: 1"]
+        EDIT["EDIT: 2"]
+        DELETE["DELETE: 4"]
+        SHARE["SHARE: 8"]
+    end
+
+    O --> VIEW
+    O --> EDIT
+    O --> DELETE
+    O --> SHARE
+
+    E --> VIEW
+    E --> EDIT
+
+    V --> VIEW
+        </pre>
+      </div>
+
+      <h3>Permission Entry</h3>
+      <pre><code>{
+  <span class="property">principalType</span>: <span class="string">"user"</span>,          <span class="comment">// "user" | "project" | "global"</span>
+  <span class="property">principalId</span>: <span class="type">ObjectId</span>(<span class="string">"..."</span>),
+  <span class="property">resourceType</span>: <span class="string">"agent"</span>,
+  <span class="property">resourceId</span>: <span class="type">ObjectId</span>(<span class="string">"..."</span>),   <span class="comment">// Agent._id</span>
+  <span class="property">accessRoleId</span>: <span class="string">"agent-owner"</span>,
+  <span class="property">grantedBy</span>: <span class="type">ObjectId</span>(<span class="string">"..."</span>),
+  <span class="property">createdAt</span>: <span class="type">Date</span>
+}</code></pre>
+
+      <h3>Sharing an Agent</h3>
+      <pre><code><span class="keyword">POST</span> /api/permissions
+{
+  <span class="string">"principalType"</span>: <span class="string">"user"</span>,
+  <span class="string">"principalId"</span>: <span class="string">"user_456"</span>,
+  <span class="string">"resourceType"</span>: <span class="string">"agent"</span>,
+  <span class="string">"resourceId"</span>: <span class="string">"agent_abc123"</span>,
+  <span class="string">"accessRoleId"</span>: <span class="string">"agent-viewer"</span>
+}</code></pre>
+    </section>
+
+    <!-- Section 11: Marketplace -->
+    <section id="marketplace">
+      <h2>11. Agent Marketplace</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart LR
+    subgraph Categories
+        P[Promoted]
+        C1[Research]
+        C2[Writing]
+        C3[Code]
+        A[All]
+    end
+
+    subgraph Filters
+        S[Search]
+        CAT[Category]
+        SORT[Sort]
+    end
+
+    subgraph Results
+        G[Agent Grid]
+        D[Agent Detail]
+        CHAT[Start Chat]
+    end
+
+    Categories --> Filters
+    Filters --> G
+    G --> D
+    D --> CHAT
+        </pre>
+      </div>
+
+      <h3>Category System</h3>
+      <pre><code><span class="keyword">interface</span> <span class="type">AgentCategory</span> {
+  <span class="property">value</span>: <span class="type">string</span>;        <span class="comment">// "research"</span>
+  <span class="property">label</span>: <span class="type">string</span>;        <span class="comment">// "Research"</span>
+  <span class="property">description</span>?: <span class="type">string</span>;
+  <span class="property">order</span>: <span class="type">number</span>;        <span class="comment">// Sort order</span>
+  <span class="property">isActive</span>: <span class="type">boolean</span>;    <span class="comment">// Show/hide</span>
+  <span class="property">custom</span>?: <span class="type">boolean</span>;     <span class="comment">// User-created</span>
+}</code></pre>
+
+      <h3>Marketplace Query</h3>
+      <pre><code><span class="keyword">GET</span> /api/agents?category=research&search=data&promoted=1&limit=20&cursor=xxx</code></pre>
+
+      <div class="callout callout-success">
+        <strong>Promoted Agents:</strong> Set by admin via <code>is_promoted: true</code>. These appear in the "Promoted" category tab and have higher visibility.
+      </div>
+    </section>
+
+    <!-- Section 12: Frontend Components -->
+    <section id="frontend">
+      <h2>12. Frontend Components</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Marketplace["Agent Marketplace"]
+        MP[Marketplace.tsx]
+        AG[AgentGrid.tsx]
+        AC[AgentCard.tsx]
+        AD[AgentDetail.tsx]
+    end
+
+    subgraph SidePanel["Side Panel"]
+        AP[AgentPanel.tsx]
+        ACF[AgentConfig.tsx]
+        AS[AgentSelect.tsx]
+    end
+
+    subgraph State["State Management"]
+        RQ[React Query]
+        RC[Recoil Atoms]
+    end
+
+    MP --> AG
+    AG --> AC
+    AC --> AD
+
+    AP --> ACF
+    AP --> AS
+
+    MP --> RQ
+    AP --> RQ
+    AP --> RC
+        </pre>
+      </div>
+
+      <h3>Key Components</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Location</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Marketplace.tsx</code></td>
+            <td class="file-ref">client/src/components/Agents/</td>
+            <td>Browse and discover agents</td>
+          </tr>
+          <tr>
+            <td><code>AgentCard.tsx</code></td>
+            <td class="file-ref">client/src/components/Agents/</td>
+            <td>Agent preview card</td>
+          </tr>
+          <tr>
+            <td><code>AgentDetail.tsx</code></td>
+            <td class="file-ref">client/src/components/Agents/</td>
+            <td>Full agent info modal</td>
+          </tr>
+          <tr>
+            <td><code>AgentPanel.tsx</code></td>
+            <td class="file-ref">client/src/components/SidePanel/Agents/</td>
+            <td>Create/edit form</td>
+          </tr>
+          <tr>
+            <td><code>AgentConfig.tsx</code></td>
+            <td class="file-ref">client/src/components/SidePanel/Agents/</td>
+            <td>Configuration fields</td>
+          </tr>
+          <tr>
+            <td><code>AgentSelect.tsx</code></td>
+            <td class="file-ref">client/src/components/SidePanel/Agents/</td>
+            <td>Agent dropdown selector</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>React Query Hooks</h3>
+      <pre><code><span class="comment">// List agents</span>
+useGetAgentsQuery({ category, search, limit });
+
+<span class="comment">// Get single agent</span>
+useGetAgentByIdQuery(agentId);
+
+<span class="comment">// Mutations</span>
+useCreateAgentMutation();
+useUpdateAgentMutation();
+useDeleteAgentMutation();
+useDuplicateAgentMutation();</code></pre>
+    </section>
+
+    <!-- Section 13: Examples -->
+    <section id="examples">
+      <h2>13. Usage Examples</h2>
+
+      <h3>Creating a Research Agent</h3>
+      <pre><code><span class="keyword">POST</span> /api/agents
+{
+  <span class="string">"name"</span>: <span class="string">"Research Pro"</span>,
+  <span class="string">"provider"</span>: <span class="string">"anthropic"</span>,
+  <span class="string">"model"</span>: <span class="string">"claude-3-opus"</span>,
+  <span class="string">"description"</span>: <span class="string">"Advanced research assistant with web search"</span>,
+  <span class="string">"instructions"</span>: <span class="string">`You are a research assistant specialized in finding
+and synthesizing information.
+
+Guidelines:
+- Always cite sources
+- Verify information from multiple sources
+- Present balanced perspectives
+- Use clear, academic language`</span>,
+  <span class="string">"tools"</span>: [<span class="string">"web_search"</span>],
+  <span class="string">"category"</span>: <span class="string">"research"</span>,
+  <span class="string">"conversation_starters"</span>: [
+    <span class="string">"Research the latest developments in AI"</span>,
+    <span class="string">"Find peer-reviewed sources on climate change"</span>
+  ],
+  <span class="string">"support_contact"</span>: {
+    <span class="string">"name"</span>: <span class="string">"Research Team"</span>,
+    <span class="string">"email"</span>: <span class="string">"research@example.com"</span>
+  }
+}</code></pre>
+
+      <h3>Creating a Code Assistant</h3>
+      <pre><code><span class="keyword">POST</span> /api/agents
+{
+  <span class="string">"name"</span>: <span class="string">"Code Helper"</span>,
+  <span class="string">"provider"</span>: <span class="string">"openai"</span>,
+  <span class="string">"model"</span>: <span class="string">"gpt-4-turbo"</span>,
+  <span class="string">"description"</span>: <span class="string">"Helps write and debug code"</span>,
+  <span class="string">"instructions"</span>: <span class="string">`You are an expert programmer assistant.
+
+Capabilities:
+- Write clean, efficient code
+- Debug issues
+- Explain concepts
+- Review code for best practices`</span>,
+  <span class="string">"tools"</span>: [<span class="string">"execute_code"</span>],
+  <span class="string">"model_parameters"</span>: {
+    <span class="string">"temperature"</span>: <span class="number">0.2</span>,
+    <span class="string">"max_tokens"</span>: <span class="number">4096</span>
+  },
+  <span class="string">"artifacts"</span>: <span class="string">"gpt4_turbo"</span>,
+  <span class="string">"category"</span>: <span class="string">"code"</span>
+}</code></pre>
+
+      <h3>Agent with MCP Integration</h3>
+      <pre><code><span class="keyword">POST</span> /api/agents
+{
+  <span class="string">"name"</span>: <span class="string">"GitHub Assistant"</span>,
+  <span class="string">"provider"</span>: <span class="string">"openai"</span>,
+  <span class="string">"model"</span>: <span class="string">"gpt-4-turbo"</span>,
+  <span class="string">"description"</span>: <span class="string">"Manages GitHub repositories"</span>,
+  <span class="string">"instructions"</span>: <span class="string">"Help users manage their GitHub repositories, issues, and PRs."</span>,
+  <span class="string">"tools"</span>: [
+    <span class="string">"mcp__all::github"</span>,  <span class="comment">// All GitHub MCP tools</span>
+    <span class="string">"web_search"</span>
+  ],
+  <span class="string">"category"</span>: <span class="string">"productivity"</span>
+}</code></pre>
+
+      <h3>Reverting Agent Version</h3>
+      <pre><code><span class="comment">// Get agent to see version count</span>
+<span class="keyword">GET</span> /api/agents/{id}/expanded
+<span class="comment">// Response includes: version: 5</span>
+
+<span class="comment">// Revert to version 2</span>
+<span class="keyword">POST</span> /api/agents/{id}/revert
+{
+  <span class="string">"version_index"</span>: <span class="number">2</span>
+}
+<span class="comment">// Agent now reflects state from version 2</span>
+<span class="comment">// New version 6 is created with reverted state</span></code></pre>
+    </section>
+
+    <!-- File Reference -->
+    <section id="files">
+      <h2>File Reference</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>File Path</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Schema</td>
+            <td class="file-ref">packages/data-schemas/src/schema/agent.ts</td>
+          </tr>
+          <tr>
+            <td>Types (Server)</td>
+            <td class="file-ref">packages/data-schemas/src/types/agent.ts</td>
+          </tr>
+          <tr>
+            <td>Types (Client)</td>
+            <td class="file-ref">packages/data-provider/src/types/assistants.ts</td>
+          </tr>
+          <tr>
+            <td>CRUD Model</td>
+            <td class="file-ref">api/models/Agent.js</td>
+          </tr>
+          <tr>
+            <td>Controller</td>
+            <td class="file-ref">api/server/controllers/agents/v1.js</td>
+          </tr>
+          <tr>
+            <td>Routes</td>
+            <td class="file-ref">api/server/routes/agents/v1.js</td>
+          </tr>
+          <tr>
+            <td>Actions</td>
+            <td class="file-ref">api/server/routes/agents/actions.js</td>
+          </tr>
+          <tr>
+            <td>Tools</td>
+            <td class="file-ref">api/server/routes/agents/tools.js</td>
+          </tr>
+          <tr>
+            <td>MCP</td>
+            <td class="file-ref">api/server/controllers/mcp.js</td>
+          </tr>
+          <tr>
+            <td>Marketplace UI</td>
+            <td class="file-ref">client/src/components/Agents/Marketplace.tsx</td>
+          </tr>
+          <tr>
+            <td>Agent Panel</td>
+            <td class="file-ref">client/src/components/SidePanel/Agents/AgentPanel.tsx</td>
+          </tr>
+          <tr>
+            <td>Permissions</td>
+            <td class="file-ref">config/migrate-agent-permissions.js</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#2b6cb0',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#4a5568',
+        lineColor: '#a0aec0',
+        secondaryColor: '#1a365d',
+        tertiaryColor: '#2d3748',
+        background: '#0d1117',
+        mainBkg: '#2d3748',
+        secondBkg: '#1a202c',
+        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      sequence: {
+        useMaxWidth: true,
+        diagramMarginX: 50,
+        diagramMarginY: 10,
+        actorMargin: 50,
+        width: 150,
+        height: 65
+      }
+    });
+  </script>
+</body>
+</html>

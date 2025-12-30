@@ -1268,7 +1268,341 @@ Result:
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: November 2, 2025
-**Total Test Cases**: 19 across 7 use cases
-**Coverage**: File upload (4), Dashboard (3), Carrier analysis (3), Contract review (3), Budget monitoring (2), Caching (1), Additional (3 planned)
+## TC-1-UC0008: Basic Conversation Title Search (ILIKE)
+
+**Use Case**: UC0008 - Conversation and Message Search (Snowflake Cortex Search)
+
+**Test Objective**: Verify basic SQL ILIKE search returns matching conversations by title
+
+**Prerequisites**:
+- User authenticated as `analyst@hcs0001.videxa.ai`
+- User has 10+ conversations with varied titles in database
+- AgentNexus backend running on `http://localhost:3050`
+
+**Test Steps**:
+1. Create test data: 5 conversations with titles containing "claims analysis"
+2. Call `GET /api/search/conversations?q=claims`
+3. Verify results contain matching conversations
+4. Verify results are ordered by UPDATED_AT DESC
+
+**Expected Input**:
+```
+GET http://localhost:3050/api/search/conversations?q=claims
+Authorization: Bearer <jwt_token>
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "query": "claims",
+  "search_type": "ilike",
+  "results": [
+    {
+      "conversation_id": "conv-001",
+      "title": "Q4 Claims Analysis",
+      "updated_at": "2025-12-15T10:30:00Z",
+      "message_count": 12,
+      "match_type": "title"
+    },
+    {
+      "conversation_id": "conv-003",
+      "title": "UHC Claims Denial Review",
+      "updated_at": "2025-12-14T16:45:00Z",
+      "message_count": 8,
+      "match_type": "title"
+    },
+    {
+      "conversation_id": "conv-007",
+      "title": "Claims Processing Workflow",
+      "updated_at": "2025-12-12T09:15:00Z",
+      "message_count": 5,
+      "match_type": "title"
+    }
+  ],
+  "total_results": 3,
+  "execution_time_ms": 45
+}
+```
+
+**Database Verification**:
+```sql
+SELECT COUNT(*) FROM NEXUSCHAT.CONVERSATIONS
+WHERE USER_ID = 'analyst@hcs0001.videxa.ai'
+  AND TITLE ILIKE '%claims%';
+-- Expected: 3 or more
+```
+
+**Pass Criteria**:
+- ✅ API returns 200 status
+- ✅ Results contain only conversations with "claims" in title (case-insensitive)
+- ✅ Results ordered by updated_at descending
+- ✅ Response time under 500ms
+- ✅ Only user's own conversations returned (tenant isolation)
+
+---
+
+## TC-2-UC0008: Message Content Search Across Conversations
+
+**Use Case**: UC0008 - Conversation and Message Search (Snowflake Cortex Search)
+
+**Test Objective**: Verify search returns messages containing query term with conversation context
+
+**Prerequisites**:
+- User authenticated with conversations containing messages about "denial rate"
+- At least 3 conversations with messages mentioning "denial"
+
+**Test Steps**:
+1. Call `GET /api/search/messages?q=denial%20rate`
+2. Verify results include message content and parent conversation
+3. Verify results highlight matching portions
+
+**Expected Input**:
+```
+GET http://localhost:3050/api/search/messages?q=denial%20rate
+Authorization: Bearer <jwt_token>
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "query": "denial rate",
+  "search_type": "ilike",
+  "results": [
+    {
+      "message_id": "msg-045",
+      "conversation_id": "conv-003",
+      "conversation_title": "UHC Claims Denial Review",
+      "role": "assistant",
+      "content_snippet": "...The **denial rate** for UHC has increased from 10.2% to 12.7% over the last quarter...",
+      "created_at": "2025-12-14T16:50:00Z",
+      "match_type": "content"
+    },
+    {
+      "message_id": "msg-078",
+      "conversation_id": "conv-001",
+      "conversation_title": "Q4 Claims Analysis",
+      "role": "assistant",
+      "content_snippet": "...Average **denial rate** across all carriers is 11.3%, which is above industry benchmark...",
+      "created_at": "2025-12-15T10:35:00Z",
+      "match_type": "content"
+    }
+  ],
+  "total_results": 2,
+  "execution_time_ms": 120
+}
+```
+
+**Database Verification**:
+```sql
+SELECT m.MESSAGE_ID, m.CONTENT, c.TITLE
+FROM NEXUSCHAT.CHAT_MESSAGES m
+JOIN NEXUSCHAT.CONVERSATIONS c ON m.CONVERSATION_ID = c.CONVERSATION_ID
+WHERE m.USER_ID = 'analyst@hcs0001.videxa.ai'
+  AND m.CONTENT ILIKE '%denial%rate%';
+-- Expected: 2 or more rows
+```
+
+**Pass Criteria**:
+- ✅ API returns 200 status
+- ✅ Results include both message content and conversation context
+- ✅ Content snippet shows surrounding context (not full message)
+- ✅ Match terms highlighted in snippet
+- ✅ Response time under 1000ms (message search more expensive)
+- ✅ User's messages only (no cross-tenant leakage)
+
+---
+
+## TC-3-UC0008: Combined Search with No Results
+
+**Use Case**: UC0008 - Conversation and Message Search (Snowflake Cortex Search)
+
+**Test Objective**: Verify graceful handling when no results match query
+
+**Prerequisites**:
+- User authenticated with conversations that do NOT contain "xyzabc123"
+
+**Test Steps**:
+1. Call `GET /api/search/all?q=xyzabc123nonexistent`
+2. Verify empty results with helpful message
+3. Verify no errors thrown
+
+**Expected Input**:
+```
+GET http://localhost:3050/api/search/all?q=xyzabc123nonexistent
+Authorization: Bearer <jwt_token>
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "query": "xyzabc123nonexistent",
+  "search_type": "ilike",
+  "results": {
+    "conversations": [],
+    "messages": []
+  },
+  "total_results": 0,
+  "execution_time_ms": 35,
+  "suggestions": [
+    "Try broader search terms",
+    "Check spelling of your query",
+    "Search is case-insensitive"
+  ]
+}
+```
+
+**Pass Criteria**:
+- ✅ API returns 200 status (not 404)
+- ✅ Empty results array, not null
+- ✅ Helpful suggestions provided
+- ✅ Fast response (no unnecessary processing)
+- ✅ No error logs generated
+
+---
+
+## TC-4-UC0008: Semantic Vector Search (Phase 3)
+
+**Use Case**: UC0008 - Conversation and Message Search (Snowflake Cortex Search)
+
+**Test Objective**: Verify semantic search finds conceptually similar content even without exact keyword match
+
+**Prerequisites**:
+- Conversations with TITLE_EMBEDDING column populated
+- Cortex EMBED_TEXT_768 function available
+- Search for "insurance claim rejections" should find "denial rate analysis"
+
+**Test Steps**:
+1. Ensure embeddings exist for test conversations
+2. Call `GET /api/search/semantic?q=insurance%20claim%20rejections`
+3. Verify semantically similar results returned with similarity scores
+
+**Expected Input**:
+```
+GET http://localhost:3050/api/search/semantic?q=insurance%20claim%20rejections
+Authorization: Bearer <jwt_token>
+```
+
+**Expected Output**:
+```json
+{
+  "success": true,
+  "query": "insurance claim rejections",
+  "search_type": "semantic",
+  "model": "snowflake-arctic-embed-m",
+  "results": [
+    {
+      "conversation_id": "conv-003",
+      "title": "UHC Claims Denial Review",
+      "similarity_score": 0.89,
+      "updated_at": "2025-12-14T16:45:00Z"
+    },
+    {
+      "conversation_id": "conv-012",
+      "title": "Aetna Rejection Patterns",
+      "similarity_score": 0.85,
+      "updated_at": "2025-12-10T11:20:00Z"
+    },
+    {
+      "conversation_id": "conv-001",
+      "title": "Q4 Claims Analysis",
+      "similarity_score": 0.72,
+      "updated_at": "2025-12-15T10:30:00Z"
+    }
+  ],
+  "total_results": 3,
+  "execution_time_ms": 280,
+  "cortex_tokens_used": 128
+}
+```
+
+**Database Verification**:
+```sql
+-- Verify embeddings exist
+SELECT COUNT(*) FROM NEXUSCHAT.CONVERSATIONS
+WHERE USER_ID = 'analyst@hcs0001.videxa.ai'
+  AND TITLE_EMBEDDING IS NOT NULL;
+-- Expected: > 0
+
+-- Verify similarity calculation works
+SELECT CONVERSATION_ID, TITLE,
+  VECTOR_COSINE_SIMILARITY(
+    TITLE_EMBEDDING,
+    SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'insurance claim rejections')
+  ) as similarity
+FROM NEXUSCHAT.CONVERSATIONS
+WHERE USER_ID = 'analyst@hcs0001.videxa.ai'
+  AND TITLE_EMBEDDING IS NOT NULL
+ORDER BY similarity DESC
+LIMIT 5;
+```
+
+**Pass Criteria**:
+- ✅ API returns 200 status
+- ✅ Results include similarity scores (0.0 - 1.0)
+- ✅ "Denial" found when searching "rejections" (semantic match)
+- ✅ Results ordered by similarity descending
+- ✅ Cortex token usage logged
+- ✅ Response time under 500ms (embeddings pre-computed)
+
+---
+
+## TC-5-UC0008: Search Rate Limiting and Security
+
+**Use Case**: UC0008 - Conversation and Message Search (Snowflake Cortex Search)
+
+**Test Objective**: Verify search endpoints are protected against abuse and maintain tenant isolation
+
+**Prerequisites**:
+- User A authenticated with their conversations
+- User B's conversations exist in database
+
+**Test Steps**:
+1. Rapidly submit 100 search requests in 10 seconds
+2. Verify rate limiting kicks in after threshold
+3. Verify User A cannot see User B's conversations in results
+
+**Expected Input**:
+```
+# Rapid requests (simulate abuse)
+for i in {1..100}; do
+  curl -X GET "http://localhost:3050/api/search/all?q=test$i" \
+    -H "Authorization: Bearer <user_a_token>"
+done
+```
+
+**Expected Output (after rate limit)**:
+```json
+{
+  "success": false,
+  "error": "rate_limit_exceeded",
+  "message": "Too many search requests. Please wait 60 seconds.",
+  "retry_after": 60
+}
+```
+
+**Tenant Isolation Verification**:
+```sql
+-- User B's conversations should NEVER appear in User A's results
+SELECT CONVERSATION_ID, USER_ID, TITLE
+FROM NEXUSCHAT.CONVERSATIONS
+WHERE TITLE ILIKE '%test%'
+  AND USER_ID != 'user_a@hcs0001.videxa.ai';
+-- These should NOT appear in User A's search results
+```
+
+**Pass Criteria**:
+- ✅ Rate limiting triggered after ~50 requests/minute
+- ✅ 429 Too Many Requests returned after limit
+- ✅ User A sees ONLY their own conversations
+- ✅ No SQL injection possible via query parameter
+- ✅ Search queries logged for audit trail
+
+---
+
+**Document Version**: 1.1
+**Last Updated**: December 15, 2025
+**Total Test Cases**: 24 across 8 use cases
+**Coverage**: File upload (4), Dashboard (3), Carrier analysis (3), Contract review (3), Budget monitoring (2), Caching (1), Search (5), Additional (3 planned)

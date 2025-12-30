@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusChat UI Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #1a365d;
+      --secondary-color: #2b6cb0;
+      --accent-color: #f6ad55;
+      --success-color: #48bb78;
+      --bg-color: #1a202c;
+      --card-bg: #2d3748;
+      --text-color: #e2e8f0;
+      --text-muted: #a0aec0;
+      --border-color: #4a5568;
+      --code-bg: #1e1e1e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.7;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      padding: 4rem 2rem;
+      text-align: center;
+      border-bottom: 4px solid var(--accent-color);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .toc {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 3rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .toc h2 {
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    .toc ul {
+      list-style: none;
+      columns: 2;
+      column-gap: 2rem;
+    }
+
+    .toc li {
+      margin-bottom: 0.5rem;
+    }
+
+    .toc a {
+      color: var(--text-color);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .toc a:hover {
+      color: var(--accent-color);
+    }
+
+    section {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+    }
+
+    h2 {
+      color: var(--accent-color);
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    h3 {
+      color: var(--text-color);
+      font-size: 1.3rem;
+      margin: 2rem 0 1rem;
+    }
+
+    h4 {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .diagram-container {
+      background: #1e2a38;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    code {
+      background: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background: var(--code-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .highlight-box {
+      background: rgba(246, 173, 85, 0.1);
+      border-left: 4px solid var(--accent-color);
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .card {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .card h4 {
+      margin-top: 0;
+      color: var(--accent-color);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--secondary-color);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge.green { background: var(--success-color); }
+    .badge.orange { background: var(--accent-color); color: var(--primary-color); }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .toc ul {
+        columns: 1;
+      }
+      .header h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>NexusChat UI Architecture</h1>
+    <p>Comprehensive documentation of the frontend architecture, component hierarchy, state management, and customization capabilities.</p>
+  </header>
+
+  <div class="container">
+    <!-- Table of Contents -->
+    <nav class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li><a href="#overview">1. Architecture Overview</a></li>
+        <li><a href="#tech-stack">2. Technology Stack</a></li>
+        <li><a href="#component-hierarchy">3. Component Hierarchy</a></li>
+        <li><a href="#state-management">4. State Management</a></li>
+        <li><a href="#layout-system">5. Layout System</a></li>
+        <li><a href="#theming">6. Theming System</a></li>
+        <li><a href="#routing">7. Routing Architecture</a></li>
+        <li><a href="#sequences">8. Sequence Diagrams</a></li>
+        <li><a href="#customization">9. Customization Points</a></li>
+        <li><a href="#malleability">10. Malleability Assessment</a></li>
+      </ul>
+    </nav>
+
+    <!-- Section 1: Overview -->
+    <section id="overview">
+      <h2>1. Architecture Overview</h2>
+      <p>NexusChat's frontend is built on <strong>LibreChat</strong>, a sophisticated React-based chat application. The architecture follows modern React patterns with a hybrid state management approach, component composition, and extensive customization capabilities.</p>
+
+      <div class="highlight-box">
+        <strong>Key Characteristics:</strong>
+        <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+          <li><strong>Framework:</strong> React 18.2 with TypeScript</li>
+          <li><strong>State Management:</strong> Recoil (client) + React Query (server) + Context API</li>
+          <li><strong>Styling:</strong> Tailwind CSS with CSS Variables for theming</li>
+          <li><strong>Components:</strong> Radix UI primitives (unstyled, accessible)</li>
+          <li><strong>Build Tool:</strong> Vite 6.3</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+graph TB
+    subgraph "Entry Point"
+        A[main.tsx] --> B[App.tsx]
+    end
+
+    subgraph "Provider Layer"
+        B --> C[AuthContextProvider]
+        C --> D[ThemeProvider]
+        D --> E[RecoilRoot]
+        E --> F[QueryClientProvider]
+        F --> G[ToastProvider]
+    end
+
+    subgraph "Routing Layer"
+        G --> H[RouterProvider]
+        H --> I[Root Layout]
+        H --> J[Auth Routes]
+        H --> K[Public Routes]
+    end
+
+    subgraph "Main Layout"
+        I --> L[Nav Sidebar]
+        I --> M[Main Content Area]
+        M --> N[ChatView]
+        M --> O[SidePanel]
+    end
+
+    subgraph "State Management"
+        P[Recoil Atoms] -.-> L
+        P -.-> N
+        Q[React Query] -.-> N
+        R[Context API] -.-> N
+    end
+        </pre>
+      </div>
+    </section>
+
+    <!-- Section 2: Tech Stack -->
+    <section id="tech-stack">
+      <h2>2. Technology Stack</h2>
+
+      <h3>Core Framework</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>React 18.2</h4>
+          <p>Modern React with hooks, concurrent features, and automatic batching.</p>
+          <span class="badge">UI Framework</span>
+        </div>
+        <div class="card">
+          <h4>TypeScript</h4>
+          <p>Full type safety throughout the codebase with strict mode enabled.</p>
+          <span class="badge">Type Safety</span>
+        </div>
+      </div>
+
+      <h3>UI Components</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Library</th>
+            <th>Purpose</th>
+            <th>Version</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>@radix-ui/*</code></td>
+            <td>Unstyled, accessible UI primitives (Dialog, Menu, Select, etc.)</td>
+            <td>Various</td>
+          </tr>
+          <tr>
+            <td><code>lucide-react</code></td>
+            <td>Icon library with 1000+ icons</td>
+            <td>Latest</td>
+          </tr>
+          <tr>
+            <td><code>framer-motion</code></td>
+            <td>Animation library for complex transitions</td>
+            <td>11.5.4</td>
+          </tr>
+          <tr>
+            <td><code>react-spring</code></td>
+            <td>Physics-based animations</td>
+            <td>9.7.5</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>State Management</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Library</th>
+            <th>Purpose</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>recoil</code></td>
+            <td>Client-side state (settings, UI state)</td>
+            <td>Atoms, Selectors, AtomFamily</td>
+          </tr>
+          <tr>
+            <td><code>@tanstack/react-query</code></td>
+            <td>Server state (API data, caching)</td>
+            <td>Queries, Mutations, Invalidation</td>
+          </tr>
+          <tr>
+            <td><code>React Context</code></td>
+            <td>Shared component state</td>
+            <td>30+ specialized contexts</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Styling</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Tailwind CSS 3.4</h4>
+          <p>Utility-first CSS framework with custom configuration for colors, spacing, and components.</p>
+          <span class="badge green">Primary Styling</span>
+        </div>
+        <div class="card">
+          <h4>CSS Variables</h4>
+          <p>Theme colors defined as CSS custom properties for easy customization and dark mode support.</p>
+          <span class="badge orange">Theming</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Component Hierarchy -->
+    <section id="component-hierarchy">
+      <h2>3. Component Hierarchy</h2>
+      <p>Components are organized by feature/domain with clear separation of concerns.</p>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+graph TD
+    subgraph "Root Components"
+        Root[Root.tsx]
+        Root --> Banner
+        Root --> NavContainer[Nav Container]
+        Root --> MainContent[Main Content]
+    end
+
+    subgraph "Navigation"
+        NavContainer --> Nav[Nav.tsx]
+        Nav --> SearchBar
+        Nav --> ConversationList[Conversations]
+        Nav --> BookmarksList[Bookmarks]
+        Nav --> SettingsTabs[Settings]
+    end
+
+    subgraph "Chat Interface"
+        MainContent --> MobileNav
+        MainContent --> Outlet[Router Outlet]
+        Outlet --> ChatRoute[Chat Route]
+        ChatRoute --> ChatView[ChatView.tsx]
+    end
+
+    subgraph "ChatView Components"
+        ChatView --> Header[Header.tsx]
+        ChatView --> MessagesView[Messages View]
+        ChatView --> ChatForm[ChatForm.tsx]
+        ChatView --> Footer[Footer.tsx]
+
+        Header --> ModelSelector
+        Header --> PresetsMenu
+        Header --> BookmarkBtn
+
+        MessagesView --> MessageTree
+        MessageTree --> MessageItem
+        MessageItem --> MessageContent
+
+        ChatForm --> TextareaAutosize
+        ChatForm --> FileUpload
+        ChatForm --> SendButton
+    end
+
+    subgraph "Side Panel"
+        MainContent --> SidePanel[SidePanel.tsx]
+        SidePanel --> ArtifactPanel
+        SidePanel --> AgentPanel
+    end
+        </pre>
+      </div>
+
+      <h3>Directory Structure</h3>
+      <pre><code>client/src/
+├── components/           # UI Components by domain
+│   ├── Agents/          # Agent marketplace, agent UI
+│   ├── Artifacts/       # Code artifacts, viewers
+│   ├── Auth/            # Login, register, OAuth
+│   ├── Chat/            # Core chat interface
+│   │   ├── Input/       # Message input components
+│   │   ├── Messages/    # Message display
+│   │   └── Menus/       # Chat menus
+│   ├── Conversations/   # Conversation list
+│   ├── Files/           # File upload, preview
+│   ├── Nav/             # Navigation sidebar
+│   │   └── SettingsTabs/# Settings panels
+│   ├── SidePanel/       # Right sidebar panels
+│   └── ui/              # Primitive UI components
+├── data-provider/       # React Query hooks
+├── hooks/               # Custom React hooks
+├── Providers/           # Context providers (30+)
+├── routes/              # Route definitions
+├── store/               # Recoil atoms/selectors
+└── utils/               # Helper functions</code></pre>
+    </section>
+
+    <!-- Section 4: State Management -->
+    <section id="state-management">
+      <h2>4. State Management</h2>
+      <p>NexusChat uses a hybrid approach combining three state management solutions:</p>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+graph LR
+    subgraph "Recoil - Client State"
+        A1[Settings Atoms]
+        A2[Conversation Atoms]
+        A3[UI State Atoms]
+    end
+
+    subgraph "React Query - Server State"
+        B1[Conversations Query]
+        B2[Messages Query]
+        B3[Models Query]
+    end
+
+    subgraph "Context API - Shared State"
+        C1[ChatContext]
+        C2[FileMapContext]
+        C3[AgentsMapContext]
+    end
+
+    subgraph "Components"
+        D[UI Components]
+    end
+
+    A1 --> D
+    A2 --> D
+    B1 --> D
+    B2 --> D
+    C1 --> D
+    C2 --> D
+        </pre>
+      </div>
+
+      <h3>Recoil Atoms</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Purpose</th>
+            <th>Persistence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>settings/*</code></td>
+            <td>User preferences (theme, fontSize, etc.)</td>
+            <td>localStorage</td>
+          </tr>
+          <tr>
+            <td><code>conversation/*</code></td>
+            <td>Active conversation state</td>
+            <td>Memory</td>
+          </tr>
+          <tr>
+            <td><code>submission/*</code></td>
+            <td>Message submission state</td>
+            <td>Memory</td>
+          </tr>
+          <tr>
+            <td><code>audio/*</code></td>
+            <td>TTS/STT settings</td>
+            <td>localStorage</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>React Query Hooks</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Hook</th>
+            <th>Endpoint</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>useGetConversationsQuery</code></td>
+            <td><code>/api/convos</code></td>
+            <td>Fetch conversation list</td>
+          </tr>
+          <tr>
+            <td><code>useGetMessagesQuery</code></td>
+            <td><code>/api/messages/:id</code></td>
+            <td>Fetch messages for conversation</td>
+          </tr>
+          <tr>
+            <td><code>useSendMessageMutation</code></td>
+            <td><code>/api/messages</code></td>
+            <td>Send new message</td>
+          </tr>
+          <tr>
+            <td><code>useGetModelsQuery</code></td>
+            <td><code>/api/models</code></td>
+            <td>Fetch available AI models</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Context Providers</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Context</th>
+            <th>Purpose</th>
+            <th>Key Methods</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ChatContext</code></td>
+            <td>Chat operations</td>
+            <td><code>ask()</code>, <code>regenerate()</code>, <code>stopGenerating()</code></td>
+          </tr>
+          <tr>
+            <td><code>FileMapContext</code></td>
+            <td>File metadata</td>
+            <td><code>fileMap</code>, <code>setFileMap</code></td>
+          </tr>
+          <tr>
+            <td><code>AgentsMapContext</code></td>
+            <td>Agent data</td>
+            <td><code>agentsMap</code>, <code>setAgentsMap</code></td>
+          </tr>
+          <tr>
+            <td><code>ArtifactContext</code></td>
+            <td>Artifact state</td>
+            <td><code>currentArtifact</code>, <code>setArtifact</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 5: Layout System -->
+    <section id="layout-system">
+      <h2>5. Layout System</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+graph TB
+    subgraph "Viewport - 100dvh"
+        direction TB
+        V[Full Height minus Banner]
+    end
+
+    subgraph "Horizontal Flex Layout"
+        direction LR
+        NAV[Nav Sidebar<br/>260px desktop<br/>320px mobile<br/>Collapsible]
+        MAIN[Main Content<br/>flex-1<br/>min-w-0]
+        SIDE[SidePanel<br/>Conditional<br/>400px]
+    end
+
+    V --> NAV
+    V --> MAIN
+    V --> SIDE
+
+    subgraph "Main Content Stack"
+        direction TB
+        HDR[Header - Sticky z-10]
+        MSG[Messages - flex-1 overflow-auto]
+        INP[Chat Input - Bottom]
+        FTR[Footer - Starters]
+    end
+
+    MAIN --> HDR
+    MAIN --> MSG
+    MAIN --> INP
+    MAIN --> FTR
+        </pre>
+      </div>
+
+      <h3>Responsive Breakpoints</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Breakpoint</th>
+            <th>Nav Width</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Desktop (&gt;768px)</td>
+            <td>260px</td>
+            <td>Always visible, can be collapsed</td>
+          </tr>
+          <tr>
+            <td>Mobile (&le;768px)</td>
+            <td>320px</td>
+            <td>Overlay, hidden by default</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Layout CSS Variables</h3>
+      <pre><code>:root {
+  --nav-width: 260px;
+  --nav-width-mobile: 320px;
+  --header-height: 56px;
+  --side-panel-width: 400px;
+}</code></pre>
+    </section>
+
+    <!-- Section 6: Theming -->
+    <section id="theming">
+      <h2>6. Theming System</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+graph TD
+    subgraph "Theme Sources"
+        ENV[Environment Variables<br/>REACT_APP_THEME_*]
+        CSS[CSS Variables<br/>:root / html.dark]
+        TW[Tailwind Config]
+    end
+
+    subgraph "Theme Provider"
+        TP[ThemeProvider]
+        TP --> LIGHT[Light Mode]
+        TP --> DARK[Dark Mode]
+        TP --> SYSTEM[System Preference]
+    end
+
+    ENV --> CSS
+    CSS --> TW
+    TW --> TP
+
+    subgraph "Components"
+        COMP[UI Components]
+    end
+
+    TP --> COMP
+        </pre>
+      </div>
+
+      <h3>CSS Variable System</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Light Mode</h4>
+          <pre><code>:root {
+  --text-primary: gray-800;
+  --surface-primary: white;
+  --surface-submit: green-700;
+  --border-medium: gray-300;
+}</code></pre>
+        </div>
+        <div class="card">
+          <h4>Dark Mode</h4>
+          <pre><code>html.dark {
+  --text-primary: gray-200;
+  --surface-primary: gray-800;
+  --surface-submit: green-600;
+  --border-medium: gray-600;
+}</code></pre>
+        </div>
+      </div>
+
+      <h3>Environment-Based Theme Override</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th>Purpose</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>REACT_APP_THEME_TEXT_PRIMARY</code></td>
+            <td>Primary text color</td>
+            <td><code>#1a202c</code></td>
+          </tr>
+          <tr>
+            <td><code>REACT_APP_THEME_SURFACE_PRIMARY</code></td>
+            <td>Primary background</td>
+            <td><code>#ffffff</code></td>
+          </tr>
+          <tr>
+            <td><code>REACT_APP_THEME_SURFACE_SUBMIT</code></td>
+            <td>Submit button color</td>
+            <td><code>#38a169</code></td>
+          </tr>
+          <tr>
+            <td><code>REACT_APP_THEME_BRAND_PURPLE</code></td>
+            <td>Brand accent color</td>
+            <td><code>#ab68ff</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 7: Routing -->
+    <section id="routing">
+      <h2>7. Routing Architecture</h2>
+
+      <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Public["Public Routes"]
+        P1[login]
+        P2[register]
+        P3[forgot-password]
+        P4["share/{shareId}"]
+        P5[oauth success]
+    end
+
+    subgraph Protected["Protected Routes"]
+        R1["Root (/)"]
+        R2[c new]
+        R3["c/{conversationId}"]
+        R4[search]
+        R5[agents]
+        R1 --> R2
+        R1 --> R3
+        R1 --> R4
+        R1 --> R5
+    end
+
+    subgraph Auth["Auth Guard"]
+        AG[AuthContextProvider]
+    end
+
+    AG -->|authenticated| R1
+    AG -->|unauthenticated| P1
+        </pre>
+      </div>
+
+      <h3>Route Configuration</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Component</th>
+            <th>Protection</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/login</code></td>
+            <td>Login</td>
+            <td>Public</td>
+          </tr>
+          <tr>
+            <td><code>/register</code></td>
+            <td>Register</td>
+            <td>Public</td>
+          </tr>
+          <tr>
+            <td><code>/share/:shareId</code></td>
+            <td>SharedView</td>
+            <td>Public</td>
+          </tr>
+          <tr>
+            <td><code>/c/new</code></td>
+            <td>ChatRoute</td>
+            <td>Protected</td>
+          </tr>
+          <tr>
+            <td><code>/c/:conversationId</code></td>
+            <td>ChatRoute</td>
+            <td>Protected</td>
+          </tr>
+          <tr>
+            <td><code>/search</code></td>
+            <td>Search</td>
+            <td>Protected</td>
+          </tr>
+          <tr>
+            <td><code>/agents</code></td>
+            <td>AgentMarketplace</td>
+            <td>Protected</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 8: Sequences -->
+    <section id="sequences">
+      <h2>8. Sequence Diagrams</h2>
+
+      <h3>Message Send Flow</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant CF as ChatForm
+    participant CC as ChatContext
+    participant RQ as React Query
+    participant API as Backend API
+    participant SSE as SSE Stream
+    participant MV as MessagesView
+
+    U->>CF: Type message
+    CF->>CF: Update form state
+    U->>CF: Click Send
+    CF->>CC: ask(message, files)
+    CC->>CC: Create submission atom
+    CC->>RQ: useSendMessageMutation
+    RQ->>API: POST /api/messages
+    API->>SSE: Start streaming
+
+    loop Stream Response
+        SSE->>CC: Token chunk
+        CC->>MV: Update message content
+    end
+
+    SSE->>CC: Stream complete
+    CC->>RQ: Invalidate queries
+    RQ->>MV: Update message tree
+        </pre>
+      </div>
+
+      <h3>File Upload Flow</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant FU as FileUpload
+    participant FM as FileMapContext
+    participant RQ as React Query
+    participant API as Backend API
+    participant S3 as Storage
+
+    U->>FU: Select/Drop files
+    FU->>FU: Validate type & size
+    FU->>FM: Add to pending
+    FU->>RQ: useUploadFileMutation
+    RQ->>API: POST /api/files
+    API->>S3: Upload to storage
+    S3->>API: Storage URL
+    API->>RQ: File metadata
+    RQ->>FM: Update fileMap
+    FM->>FU: Show complete
+        </pre>
+      </div>
+
+      <h3>Conversation Load Flow</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant Nav as Nav Sidebar
+    participant Router as React Router
+    participant RQ as React Query
+    participant API as Backend
+    participant CV as ChatView
+
+    U->>Nav: Click conversation
+    Nav->>Router: navigate(/c/:id)
+    Router->>CV: Mount ChatView
+    CV->>RQ: useGetMessagesQuery(id)
+    RQ->>API: GET /api/messages/:id
+    API->>RQ: Messages array
+    RQ->>CV: Render messages
+    CV->>CV: Scroll to bottom
+        </pre>
+      </div>
+    </section>
+
+    <!-- Section 9: Customization -->
+    <section id="customization">
+      <h2>9. Customization Points</h2>
+
+      <h3>1. Adding New Providers</h3>
+      <pre><code>// src/Providers/CustomProvider.tsx
+import { createContext, useContext, useState, ReactNode } from 'react';
+
+interface CustomContextValue {
+  customValue: string;
+  setCustomValue: (value: string) => void;
+}
+
+const CustomContext = createContext&lt;CustomContextValue | undefined&gt;(undefined);
+
+export const CustomProvider = ({ children }: { children: ReactNode }) => {
+  const [customValue, setCustomValue] = useState('');
+  return (
+    &lt;CustomContext.Provider value={{ customValue, setCustomValue }}&gt;
+      {children}
+    &lt;/CustomContext.Provider&gt;
+  );
+};
+
+export const useCustomContext = () => {
+  const context = useContext(CustomContext);
+  if (!context) throw new Error('Must be used within CustomProvider');
+  return context;
+};</code></pre>
+
+      <h3>2. Adding New Recoil Atoms</h3>
+      <pre><code>// src/store/custom.ts
+import { atom, atomFamily } from 'recoil';
+import { atomWithLocalStorage } from './utils';
+
+export const customSettingAtom = atom&lt;string&gt;({
+  key: 'customSetting',
+  default: 'default-value',
+  effects: [atomWithLocalStorage('customSetting')],
+});
+
+export const customDataFamily = atomFamily&lt;CustomData, string&gt;({
+  key: 'customDataFamily',
+  default: (id) => ({ id, value: null }),
+});</code></pre>
+
+      <h3>3. Adding React Query Hooks</h3>
+      <pre><code>// src/data-provider/custom.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+export const useGetCustomDataQuery = (id: string) => {
+  return useQuery({
+    queryKey: ['customData', id],
+    queryFn: () => api.get(`/api/custom/${id}`),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useUpdateCustomMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CustomData) => api.post('/api/custom', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customData'] });
+    },
+  });
+};</code></pre>
+
+      <h3>4. Theme Customization</h3>
+      <pre><code># .env
+REACT_APP_THEME_TEXT_PRIMARY=#1a365d
+REACT_APP_THEME_SURFACE_PRIMARY=#f7fafc
+REACT_APP_THEME_SURFACE_SUBMIT=#2b6cb0
+REACT_APP_THEME_BRAND_PURPLE=#6b46c1</code></pre>
+    </section>
+
+    <!-- Section 10: Malleability -->
+    <section id="malleability">
+      <h2>10. Malleability Assessment</h2>
+
+      <h3>High Malleability (Easy to Change)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Method</th>
+            <th>Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Theming</td>
+            <td>Environment variables, CSS variables</td>
+            <td><span class="badge green">Very Easy</span></td>
+          </tr>
+          <tr>
+            <td>Adding Features</td>
+            <td>New providers, hooks, components</td>
+            <td><span class="badge green">Easy</span></td>
+          </tr>
+          <tr>
+            <td>State Management</td>
+            <td>Add atoms, queries, contexts</td>
+            <td><span class="badge green">Easy</span></td>
+          </tr>
+          <tr>
+            <td>New Routes</td>
+            <td>Add to routes/index.tsx</td>
+            <td><span class="badge green">Easy</span></td>
+          </tr>
+          <tr>
+            <td>Component Styling</td>
+            <td>Tailwind classes, cn() utility</td>
+            <td><span class="badge green">Easy</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Medium Malleability</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Considerations</th>
+            <th>Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Layout Structure</td>
+            <td>Requires understanding of flex layout system</td>
+            <td><span class="badge orange">Medium</span></td>
+          </tr>
+          <tr>
+            <td>Message Rendering</td>
+            <td>Complex tree structure with branching</td>
+            <td><span class="badge orange">Medium</span></td>
+          </tr>
+          <tr>
+            <td>Navigation</td>
+            <td>Multiple interconnected components</td>
+            <td><span class="badge orange">Medium</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Lower Malleability</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Reason</th>
+            <th>Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Core Chat Logic</td>
+            <td>Tightly integrated with backend SSE streaming</td>
+            <td><span class="badge">High</span></td>
+          </tr>
+          <tr>
+            <td>Authentication</td>
+            <td>Security considerations, OAuth flows</td>
+            <td><span class="badge">High</span></td>
+          </tr>
+          <tr>
+            <td>Real-time Streaming</td>
+            <td>Complex SSE implementation</td>
+            <td><span class="badge">High</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="highlight-box">
+        <strong>Recommendations for Customization:</strong>
+        <ol style="margin-top: 0.5rem; padding-left: 1.5rem;">
+          <li><strong>Start with Theming:</strong> Use environment variables for quick visual changes</li>
+          <li><strong>Use Provider Pattern:</strong> Add new contexts for new feature state</li>
+          <li><strong>Extend Don't Replace:</strong> Wrap existing components rather than replacing</li>
+          <li><strong>Follow Existing Patterns:</strong> Use Recoil for client state, React Query for server state</li>
+          <li><strong>Test Responsiveness:</strong> Always test mobile and desktop layouts</li>
+          <li><strong>Maintain Accessibility:</strong> Use Radix primitives for new interactive components</li>
+        </ol>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p>
+      <strong>NexusChat UI Architecture Documentation</strong><br>
+      Generated: December 2025 | Based on LibreChat Frontend
+    </p>
+  </footer>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#2b6cb0',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#4a5568',
+        lineColor: '#a0aec0',
+        secondaryColor: '#2d3748',
+        tertiaryColor: '#1a202c',
+        background: '#1a202c',
+        mainBkg: '#2d3748',
+        secondBkg: '#1a202c',
+        border1: '#4a5568',
+        border2: '#4a5568',
+        arrowheadColor: '#a0aec0',
+        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+        fontSize: '14px',
+        textColor: '#e2e8f0',
+        nodeTextColor: '#e2e8f0'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      sequence: {
+        useMaxWidth: true,
+        diagramMarginX: 50,
+        diagramMarginY: 10,
+        actorMargin: 50,
+        width: 150,
+        height: 65,
+        boxMargin: 10,
+        boxTextMargin: 5,
+        noteMargin: 10,
+        messageMargin: 35
+      }
+    });
+  </script>
+</body>
+</html>

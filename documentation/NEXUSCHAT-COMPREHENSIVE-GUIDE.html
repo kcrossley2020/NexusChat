@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusChat - Comprehensive System Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --warning-color: #fbbc04;
+            --error-color: #ea4335;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #202124;
+            --border-color: #dadce0;
+            --code-bg: #f1f3f4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            padding: 0;
+            margin: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        header .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        nav.toc {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        nav.toc h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        nav.toc ul {
+            list-style: none;
+            columns: 2;
+            column-gap: 40px;
+        }
+
+        @media (max-width: 768px) {
+            nav.toc ul {
+                columns: 1;
+            }
+        }
+
+        nav.toc li {
+            margin: 8px 0;
+        }
+
+        nav.toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 5px 0;
+            display: block;
+            border-left: 3px solid transparent;
+            padding-left: 10px;
+            transition: all 0.2s;
+        }
+
+        nav.toc a:hover {
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            background: var(--bg-color);
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 25px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        section h3 {
+            color: var(--text-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+        }
+
+        section h4 {
+            color: #5f6368;
+            font-size: 1.1rem;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin: 15px 0;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #263238;
+            color: #aabbc3;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: var(--bg-color);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-complete { background: #e6f4ea; color: #137333; }
+        .status-progress { background: #fef7e0; color: #b06000; }
+        .status-planned { background: #e8f0fe; color: #1967d2; }
+        .status-ready { background: #e6f4ea; color: #137333; }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .card h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .test-case {
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .test-case h4 {
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+
+        .pass-criteria {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pass-criteria li {
+            padding: 5px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .pass-criteria li::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        .use-case {
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .use-case h4 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-info {
+            background: #e8f0fe;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .alert-warning {
+            background: #fef7e0;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .alert-success {
+            background: #e6f4ea;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #5f6368;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--primary-color), #0d47a1);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .metric-card .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>NexusChat</h1>
+        <p class="subtitle">AI-Powered Healthcare Data Intelligence Assistant</p>
+        <p class="subtitle">Branded as "Nex by Videxa"</p>
+        <span class="version-badge">Version 1.0.0 | December 2025</span>
+    </header>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>Overview & Purpose</h2>
+            <p>NexusChat is an enterprise-grade AI-powered healthcare data intelligence assistant that enables healthcare systems to analyze claims, policies, contracts, and clinical data using natural language conversations. The platform is built on a 100% Snowflake architecture with Cortex AI integration for HIPAA-compliant data processing.</p>
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="value">87%</div>
+                    <div class="label">Feature Complete</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">95%</div>
+                    <div class="label">Snowflake Migration</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">100%</div>
+                    <div class="label">RAG/AI Complete</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">11</div>
+                    <div class="label">Use Cases</div>
+                </div>
+            </div>
+
+            <h3>Key Capabilities</h3>
+            <ul>
+                <li><strong>Healthcare Claims Analysis</strong> - AI-powered insights from claims data</li>
+                <li><strong>Contract & Policy Review</strong> - Semantic analysis of insurance documents</li>
+                <li><strong>Multi-Tenant Architecture</strong> - Isolated data for each healthcare organization</li>
+                <li><strong>Usage & Cost Tracking</strong> - Token consumption and budget management</li>
+                <li><strong>HIPAA Compliance</strong> - All data processing within Snowflake boundary</li>
+                <li><strong>Conversation Persistence</strong> - Full chat history stored in Snowflake</li>
+            </ul>
+
+            <div class="alert alert-success">
+                <strong>Production Ready:</strong> MongoDB has been eliminated. All data now resides in Snowflake, providing a single source of truth with lower costs and better HIPAA compliance.
+            </div>
+        </section>
+
+        <!-- Table of Contents -->
+        <nav class="toc" id="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">1. Overview & Purpose</a></li>
+                <li><a href="#architecture">2. System Architecture</a></li>
+                <li><a href="#infrastructure">3. Infrastructure Requirements</a></li>
+                <li><a href="#database-schema">4. Database Schema</a></li>
+                <li><a href="#use-cases">5. Use Cases</a></li>
+                <li><a href="#test-cases">6. Test Cases</a></li>
+                <li><a href="#api-endpoints">7. API Endpoints</a></li>
+                <li><a href="#deployment">8. Deployment Guide</a></li>
+                <li><a href="#security">9. Security Configuration</a></li>
+                <li><a href="#feature-status">10. Feature Status</a></li>
+                <li><a href="#known-limitations">11. Known Limitations</a></li>
+                <li><a href="#glossary">12. Glossary</a></li>
+            </ul>
+        </nav>
+
+        <!-- Architecture Section -->
+        <section id="architecture">
+            <h2>2. System Architecture</h2>
+
+            <h3>High-Level Architecture</h3>
+            <div class="mermaid">
+flowchart TB
+    subgraph Client["Client Layer"]
+        UI[NexusChat UI<br/>Port 3080]
+    end
+
+    subgraph Backend["Backend Services"]
+        API[AgentNexus API<br/>FastAPI - Port 3050]
+        Auth[JWT Authentication]
+    end
+
+    subgraph Snowflake["Snowflake Cloud"]
+        subgraph AuthSchema["AUTH_SCHEMA"]
+            UP[USER_PROFILES]
+            LE[LOGIN_EVENTS]
+            PRT[PASSWORD_RESET_TOKENS]
+        end
+
+        subgraph NexusChatSchema["NEXUSCHAT Schema"]
+            CONV[CONVERSATIONS]
+            MSG[CHAT_MESSAGES]
+            PREF[USER_PREFERENCES]
+            FILES[FILE_UPLOADS]
+        end
+
+        subgraph ClaimsSchema["CLAIMS Schema"]
+            IC[INSURANCE_CLAIMS]
+            CH[CLAIM_HISTORY]
+        end
+
+        subgraph Cortex["Snowflake Cortex"]
+            LLM[LLM Models<br/>Claude, Llama, Mistral]
+            EMB[Embeddings<br/>Arctic Embed]
+            SEARCH[Cortex Search]
+        end
+    end
+
+    subgraph Azure["Azure Services"]
+        KV[Key Vault<br/>kv-agentnexus-prd-cus]
+    end
+
+    UI --> API
+    API --> Auth
+    Auth --> UP
+    API --> KV
+    API --> CONV
+    API --> MSG
+    API --> IC
+    API --> LLM
+    API --> EMB
+            </div>
+
+            <h3>Data Flow Diagram</h3>
+            <div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant NC as NexusChat UI
+    participant AN as AgentNexus API
+    participant SF as Snowflake
+    participant CX as Cortex AI
+
+    U->>NC: Enter query about claims
+    NC->>AN: POST /api/chat/messages
+    AN->>SF: Store user message
+    AN->>SF: Retrieve relevant claims data
+    AN->>CX: Generate AI response
+    CX-->>AN: AI completion
+    AN->>SF: Store assistant message
+    AN-->>NC: Return response
+    NC-->>U: Display AI response
+            </div>
+
+            <h3>Container Architecture</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>NexusChat-Videxa-Snowflake</h4>
+                    <p><strong>Port:</strong> 3080</p>
+                    <p><strong>Base:</strong> LibreChat v0.8.0 (forked)</p>
+                    <p><strong>Function:</strong> Frontend chat interface</p>
+                </div>
+                <div class="card">
+                    <h4>AgentNexus Backend</h4>
+                    <p><strong>Port:</strong> 3050</p>
+                    <p><strong>Framework:</strong> FastAPI (Python)</p>
+                    <p><strong>Function:</strong> API, Auth, Snowflake integration</p>
+                </div>
+            </div>
+
+            <h3>Authentication Flow</h3>
+            <div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant NC as NexusChat
+    participant AN as AgentNexus
+    participant KV as Azure Key Vault
+    participant SF as Snowflake
+
+    U->>NC: Login with email/password
+    NC->>AN: POST /api/auth/login
+    AN->>KV: Get Snowflake credentials
+    KV-->>AN: Private key + config
+    AN->>SF: Validate user credentials
+    SF-->>AN: User verified
+    AN->>AN: Generate JWT token
+    AN-->>NC: Return JWT + user info
+    NC->>NC: Store token
+    NC-->>U: Redirect to dashboard
+            </div>
+        </section>
+
+        <!-- Infrastructure Section -->
+        <section id="infrastructure">
+            <h2>3. Infrastructure Requirements</h2>
+
+            <h3>Cloud Services</h3>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Provider</th>
+                    <th>Purpose</th>
+                    <th>Configuration</th>
+                </tr>
+                <tr>
+                    <td>Snowflake</td>
+                    <td>Snowflake (Azure Region)</td>
+                    <td>Primary database, AI/ML</td>
+                    <td>Account: vga30685.east-us-2.azure</td>
+                </tr>
+                <tr>
+                    <td>Azure Key Vault</td>
+                    <td>Microsoft Azure</td>
+                    <td>Secrets management</td>
+                    <td>kv-agentnexus-prd-cus</td>
+                </tr>
+                <tr>
+                    <td>Docker</td>
+                    <td>Self-hosted</td>
+                    <td>Container runtime</td>
+                    <td>docker-compose.snowflake-only.yml</td>
+                </tr>
+            </table>
+
+            <h3>Snowflake Resources</h3>
+            <table>
+                <tr>
+                    <th>Resource</th>
+                    <th>Name</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Database</td>
+                    <td>AGENTNEXUS_DB</td>
+                    <td>Authentication and shared data</td>
+                </tr>
+                <tr>
+                    <td>Database</td>
+                    <td>HCS0001_DB - HCS0020_DB</td>
+                    <td>Per-organization tenant databases</td>
+                </tr>
+                <tr>
+                    <td>Warehouse</td>
+                    <td>COMPUTE_WH</td>
+                    <td>Query processing</td>
+                </tr>
+                <tr>
+                    <td>Service Account</td>
+                    <td>AGENTNEXUS_SVC</td>
+                    <td>Application service account</td>
+                </tr>
+                <tr>
+                    <td>Role</td>
+                    <td>AGENTNEXUS_AUTH_WRITER</td>
+                    <td>DDL/DML on AUTH_SCHEMA</td>
+                </tr>
+            </table>
+
+            <h3>Azure Key Vault Secrets</h3>
+            <table>
+                <tr>
+                    <th>Secret Name</th>
+                    <th>Purpose</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>snowflake-account</td>
+                    <td>Snowflake account identifier</td>
+                    <td><span class="status-badge status-complete">Validated</span></td>
+                </tr>
+                <tr>
+                    <td>snowflake-user</td>
+                    <td>Service account username</td>
+                    <td><span class="status-badge status-complete">Validated</span></td>
+                </tr>
+                <tr>
+                    <td>snowflake-agentnexus-private-key</td>
+                    <td>RSA private key (PEM format)</td>
+                    <td><span class="status-badge status-complete">Validated</span></td>
+                </tr>
+                <tr>
+                    <td>jwt-secret-key</td>
+                    <td>JWT signing key</td>
+                    <td><span class="status-badge status-complete">Validated</span></td>
+                </tr>
+            </table>
+
+            <h3>Environment Variables</h3>
+            <pre><code># Docker Container Environment
+USE_SNOWFLAKE_STORAGE=true
+AGENTNEXUS_API_URL=http://host.docker.internal:3050
+ALLOW_PASSWORD_RESET=true
+SNOWFLAKE_CORTEX_MODEL=claude-sonnet-4
+
+# AgentNexus Backend
+AZURE_KEY_VAULT_URL=https://kv-agentnexus-prd-cus.vault.azure.net/
+ENABLE_TESTING_ENDPOINTS=false  # true for development</code></pre>
+        </section>
+
+        <!-- Database Schema Section -->
+        <section id="database-schema">
+            <h2>4. Database Schema</h2>
+
+            <h3>Entity Relationship Diagram</h3>
+            <div class="mermaid">
+erDiagram
+    USER_PROFILES ||--o{ CONVERSATIONS : owns
+    USER_PROFILES ||--o{ USER_LOGIN_EVENTS : generates
+    USER_PROFILES ||--o| USER_PREFERENCES : has
+    USER_PROFILES ||--o{ PASSWORD_RESET_TOKENS : requests
+    CONVERSATIONS ||--o{ CHAT_MESSAGES : contains
+    CONVERSATIONS ||--o{ FILE_UPLOADS : includes
+
+    USER_PROFILES {
+        varchar USER_ID PK
+        varchar EMAIL UK
+        varchar PASSWORD_HASH
+        varchar ORGANIZATION_NAME
+        boolean EMAIL_VERIFIED
+        varchar ACCOUNT_TYPE
+        varchar REGISTRATION_METHOD
+        int FAILED_LOGIN_COUNT
+        boolean ACCOUNT_LOCKED
+        timestamp LOCKED_UNTIL
+        timestamp LAST_LOGIN_AT
+        varchar LAST_LOGIN_IP
+    }
+
+    CONVERSATIONS {
+        varchar CONVERSATION_ID PK
+        varchar USER_ID FK
+        varchar TITLE
+        varchar MODEL
+        text SYSTEM_PROMPT
+        int MESSAGE_COUNT
+        int TOTAL_TOKENS
+        decimal TOTAL_COST
+        timestamp CREATED_AT
+        timestamp UPDATED_AT
+        boolean ARCHIVED
+    }
+
+    CHAT_MESSAGES {
+        varchar MESSAGE_ID PK
+        varchar CONVERSATION_ID FK
+        varchar USER_ID
+        varchar ROLE
+        text CONTENT
+        int TOKENS_USED
+        decimal COST_ESTIMATE
+        int LATENCY_MS
+        timestamp CREATED_AT
+    }
+
+    USER_PREFERENCES {
+        varchar USER_ID PK
+        varchar THEME
+        varchar LANGUAGE
+        varchar DEFAULT_MODEL
+        float TEMPERATURE
+        int MAX_TOKENS
+        boolean ENABLE_CACHING
+    }
+            </div>
+
+            <h3>AUTH_SCHEMA Tables</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>USER_PROFILES</h4>
+                    <p>Core user authentication and profile data</p>
+                    <p><strong>Key Fields:</strong> USER_ID, EMAIL, PASSWORD_HASH, EMAIL_VERIFIED, ACCOUNT_LOCKED</p>
+                </div>
+                <div class="card">
+                    <h4>USER_LOGIN_EVENTS</h4>
+                    <p>Audit trail of all login attempts</p>
+                    <p><strong>Key Fields:</strong> EVENT_ID, USER_ID, AUTH_SUCCESS, IP_ADDRESS, RISK_SCORE</p>
+                </div>
+                <div class="card">
+                    <h4>PASSWORD_RESET_TOKENS</h4>
+                    <p>Password reset workflow tokens</p>
+                    <p><strong>Key Fields:</strong> TOKEN_ID, USER_ID, TOKEN, EXPIRES_AT, USED</p>
+                </div>
+            </div>
+
+            <h3>NEXUSCHAT Schema Tables</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>CONVERSATIONS</h4>
+                    <p>Chat conversation metadata and aggregates</p>
+                    <p><strong>Key Fields:</strong> CONVERSATION_ID, USER_ID, TITLE, MODEL, MESSAGE_COUNT, TOTAL_COST</p>
+                </div>
+                <div class="card">
+                    <h4>CHAT_MESSAGES</h4>
+                    <p>Individual chat messages with token tracking</p>
+                    <p><strong>Key Fields:</strong> MESSAGE_ID, CONVERSATION_ID, ROLE, CONTENT, TOKENS_USED</p>
+                </div>
+                <div class="card">
+                    <h4>USER_PREFERENCES</h4>
+                    <p>User-specific settings and defaults</p>
+                    <p><strong>Key Fields:</strong> USER_ID, THEME, DEFAULT_MODEL, TEMPERATURE</p>
+                </div>
+                <div class="card">
+                    <h4>FILE_UPLOADS</h4>
+                    <p>Uploaded healthcare data files</p>
+                    <p><strong>Key Fields:</strong> FILE_ID, CONVERSATION_ID, FILENAME, FILE_TYPE, ROW_COUNT</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section id="use-cases">
+            <h2>5. Use Cases</h2>
+
+            <div class="use-case">
+                <h4>UC0000: Test Automation Bypass</h4>
+                <p><strong>Actors:</strong> Automated Test Frameworks, QA Engineers</p>
+                <p><strong>Summary:</strong> Create test users bypassing email verification for E2E testing. Users marked with REGISTRATION_METHOD='testing' for isolation and cleanup.</p>
+                <p><strong>Endpoints:</strong> POST /api/testing/create-user, DELETE /api/testing/delete-user/{email}</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0001: File Ingestion for Healthcare Data Analysis</h4>
+                <p><strong>Actors:</strong> Healthcare Analysts, Revenue Cycle Managers</p>
+                <p><strong>Summary:</strong> Upload healthcare files (claims, policies, EOBs) for AI-powered analysis. Files parsed and stored in tenant-specific Snowflake databases.</p>
+                <p><strong>Supported Formats:</strong> CSV, PDF, Excel, JSON (max 100MB)</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0002: Conversation Dashboard and Progress Tracking</h4>
+                <p><strong>Actors:</strong> All authenticated users, Administrators</p>
+                <p><strong>Summary:</strong> View personalized dashboards showing conversation history, AI usage metrics, cost tracking, and analytical progress.</p>
+                <p><strong>Metrics:</strong> Token usage, cost attribution, cache efficiency, top queries</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0003: Insurance Carrier Analysis from Claims Data</h4>
+                <p><strong>Actors:</strong> Revenue Cycle Analysts, Billing Managers</p>
+                <p><strong>Summary:</strong> Query claims data to extract insights about insurance carriers including payment patterns, denial rates, and reimbursement trends.</p>
+                <p><strong>Example Query:</strong> "From the claims that I have supplied, what can you tell me about the insurance carrier UnitedHealthcare?"</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0004: Contract Comparison and Problem Identification</h4>
+                <p><strong>Actors:</strong> Contract Administrators, Legal teams</p>
+                <p><strong>Summary:</strong> Upload and compare multiple contracts to identify discrepancies, compliance issues, or root causes of claims processing problems.</p>
+                <p><strong>AI Capabilities:</strong> Semantic analysis, clause extraction, conflict detection</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0005: Multi-Tenant Collaborative Analysis</h4>
+                <p><strong>Actors:</strong> Clinical teams, Analytics teams, Management</p>
+                <p><strong>Summary:</strong> Share conversations with team members for collaborative analysis while maintaining tenant data isolation.</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0006: Cost and Budget Monitoring</h4>
+                <p><strong>Actors:</strong> Finance Administrators, IT Administrators</p>
+                <p><strong>Summary:</strong> Track AI usage costs, set budget alerts (75%, 90% thresholds), and optimize token consumption.</p>
+                <p><strong>Thresholds:</strong> WARNING at 75%, CRITICAL at 100% (auto-suspend)</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0007: Cached Query Performance Optimization</h4>
+                <p><strong>Actors:</strong> System (automated)</p>
+                <p><strong>Summary:</strong> Automatically cache frequently asked queries to reduce Cortex token costs and improve response times.</p>
+                <p><strong>Cache TTL:</strong> 24 hours default</p>
+            </div>
+
+            <div class="use-case">
+                <h4>UC0008: Conversation and Message Search (Snowflake Cortex Search)</h4>
+                <p><strong>Actors:</strong> All authenticated users</p>
+                <p><strong>Summary:</strong> Search across conversation history and message content using natural language. Replaces deprecated MeiliSearch with native Snowflake capabilities.</p>
+                <p><strong>Implementation Phases:</strong></p>
+                <ul>
+                    <li><strong>Phase 1:</strong> Basic SQL ILIKE search (available now)</li>
+                    <li><strong>Phase 2:</strong> Snowflake Cortex Search Service (recommended)</li>
+                    <li><strong>Phase 3:</strong> Vector similarity search (semantic matching)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Test Cases Section -->
+        <section id="test-cases">
+            <h2>6. Test Cases</h2>
+            <p><strong>Total Test Cases:</strong> 24 across 8 use cases | <strong>Coverage Target:</strong> 80% of functionality</p>
+
+            <h3>Authentication Test Cases (UC0000)</h3>
+
+            <div class="test-case">
+                <h4>TC-0.1-UC0000: Test User Creation via API</h4>
+                <p><strong>Objective:</strong> Verify testing endpoint can create test user directly in Snowflake without email verification</p>
+                <pre><code>POST http://localhost:3050/api/testing/create-user
+{
+  "email": "e2e-test-001@videxa.test",
+  "password": "TestPass123!",
+  "organization_name": "E2E Test Organization",
+  "account_type": "trial"
+}</code></pre>
+                <ul class="pass-criteria">
+                    <li>API returns 200 status with user_id</li>
+                    <li>User created in Snowflake with EMAIL_VERIFIED=TRUE</li>
+                    <li>User marked with REGISTRATION_METHOD='testing'</li>
+                    <li>Password properly hashed with bcrypt</li>
+                </ul>
+            </div>
+
+            <div class="test-case">
+                <h4>TC-0.2-UC0000: Test User Login and JWT Token</h4>
+                <p><strong>Objective:</strong> Verify test user can login immediately and obtain JWT token</p>
+                <pre><code>POST http://localhost:3050/api/auth/login
+{
+  "email": "e2e-test-001@videxa.test",
+  "password": "TestPass123!"
+}</code></pre>
+                <ul class="pass-criteria">
+                    <li>Login succeeds without email verification prompt</li>
+                    <li>JWT token returned with 24-hour expiration</li>
+                    <li>Token payload contains email_verified: true</li>
+                    <li>User login event logged to USER_LOGIN_EVENTS</li>
+                </ul>
+            </div>
+
+            <h3>Search Test Cases (UC0008)</h3>
+
+            <div class="test-case">
+                <h4>TC-1-UC0008: Basic Conversation Title Search</h4>
+                <p><strong>Objective:</strong> Verify basic SQL ILIKE search returns matching conversations by title</p>
+                <pre><code>GET http://localhost:3050/api/search/conversations?q=claims
+Authorization: Bearer &lt;jwt_token&gt;</code></pre>
+                <ul class="pass-criteria">
+                    <li>API returns 200 status</li>
+                    <li>Results contain only conversations with "claims" in title</li>
+                    <li>Results ordered by updated_at descending</li>
+                    <li>Response time under 500ms</li>
+                    <li>Only user's own conversations returned (tenant isolation)</li>
+                </ul>
+            </div>
+
+            <div class="test-case">
+                <h4>TC-2-UC0008: Message Content Search</h4>
+                <p><strong>Objective:</strong> Verify search returns messages containing query term with conversation context</p>
+                <pre><code>GET http://localhost:3050/api/search/messages?q=denial%20rate
+Authorization: Bearer &lt;jwt_token&gt;</code></pre>
+                <ul class="pass-criteria">
+                    <li>Results include message content and conversation context</li>
+                    <li>Content snippet shows surrounding context</li>
+                    <li>Match terms highlighted in snippet</li>
+                    <li>Response time under 1000ms</li>
+                    <li>User's messages only (no cross-tenant leakage)</li>
+                </ul>
+            </div>
+
+            <div class="test-case">
+                <h4>TC-4-UC0008: Semantic Vector Search (Phase 3)</h4>
+                <p><strong>Objective:</strong> Verify semantic search finds conceptually similar content</p>
+                <pre><code>GET http://localhost:3050/api/search/semantic?q=insurance%20claim%20rejections
+-- Should find "denial rate analysis" conversations</code></pre>
+                <ul class="pass-criteria">
+                    <li>Results include similarity scores (0.0 - 1.0)</li>
+                    <li>"Denial" found when searching "rejections" (semantic match)</li>
+                    <li>Results ordered by similarity descending</li>
+                    <li>Cortex token usage logged</li>
+                </ul>
+            </div>
+
+            <div class="test-case">
+                <h4>TC-5-UC0008: Search Rate Limiting and Security</h4>
+                <p><strong>Objective:</strong> Verify search endpoints are protected against abuse</p>
+                <ul class="pass-criteria">
+                    <li>Rate limiting triggered after ~50 requests/minute</li>
+                    <li>429 Too Many Requests returned after limit</li>
+                    <li>User A sees ONLY their own conversations</li>
+                    <li>No SQL injection possible via query parameter</li>
+                    <li>Search queries logged for audit trail</li>
+                </ul>
+            </div>
+
+            <h3>Test Coverage Summary</h3>
+            <table>
+                <tr>
+                    <th>Use Case</th>
+                    <th>Test Cases</th>
+                    <th>Coverage</th>
+                </tr>
+                <tr>
+                    <td>UC0000 - Test Automation</td>
+                    <td>4</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0001 - File Ingestion</td>
+                    <td>4</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0002 - Dashboard</td>
+                    <td>3</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0003 - Carrier Analysis</td>
+                    <td>3</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0004 - Contract Review</td>
+                    <td>3</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0006 - Budget Monitoring</td>
+                    <td>2</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0007 - Caching</td>
+                    <td>1</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>UC0008 - Search</td>
+                    <td>5</td>
+                    <td><span class="status-badge status-ready">Ready</span></td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- API Endpoints Section -->
+        <section id="api-endpoints">
+            <h2>7. API Endpoints</h2>
+
+            <h3>Authentication Endpoints (/api/auth)</h3>
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                    <th>Auth Required</th>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/auth/register</td>
+                    <td>Register new user</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/auth/verify</td>
+                    <td>Verify email code</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/auth/login</td>
+                    <td>User login (Snowflake)</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/auth/request-password-reset</td>
+                    <td>Request reset token</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/auth/reset-password</td>
+                    <td>Reset with token</td>
+                    <td>No</td>
+                </tr>
+            </table>
+
+            <h3>Chat Endpoints (/api/chat)</h3>
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                    <th>Auth Required</th>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/chat/conversations</td>
+                    <td>List user conversations</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/chat/conversations</td>
+                    <td>Create conversation</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/chat/conversations/{id}</td>
+                    <td>Get conversation</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+                <tr>
+                    <td>PUT</td>
+                    <td>/chat/conversations/{id}</td>
+                    <td>Update conversation</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>/chat/conversations/{id}</td>
+                    <td>Delete conversation</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/chat/messages</td>
+                    <td>Get messages</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/chat/messages</td>
+                    <td>Add message</td>
+                    <td>Yes (JWT)</td>
+                </tr>
+            </table>
+
+            <h3>Search Endpoints (/api/search) - Planned</h3>
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/search/conversations?q={query}</td>
+                    <td>Search conversation titles</td>
+                    <td><span class="status-badge status-planned">Planned</span></td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/search/messages?q={query}</td>
+                    <td>Search message content</td>
+                    <td><span class="status-badge status-planned">Planned</span></td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/search/all?q={query}</td>
+                    <td>Combined search</td>
+                    <td><span class="status-badge status-planned">Planned</span></td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/search/semantic?q={query}</td>
+                    <td>Vector similarity search</td>
+                    <td><span class="status-badge status-planned">Phase 3</span></td>
+                </tr>
+            </table>
+
+            <h3>Testing Endpoints (/api/testing) - Dev Only</h3>
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> Testing endpoints are only available when ENABLE_TESTING_ENDPOINTS=true. Must be disabled in production.
+            </div>
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/testing/health</td>
+                    <td>Check testing router status</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/testing/create-user</td>
+                    <td>Create test user (bypasses verification)</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>/testing/delete-user/{email}</td>
+                    <td>Delete test user</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/testing/list-test-users</td>
+                    <td>List all test users</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Deployment Section -->
+        <section id="deployment">
+            <h2>8. Deployment Guide</h2>
+
+            <h3>Prerequisites</h3>
+            <ul>
+                <li>Docker and Docker Compose installed</li>
+                <li>Azure CLI authenticated (<code>az login</code>)</li>
+                <li>Access to Azure Key Vault (kv-agentnexus-prd-cus)</li>
+                <li>Snowflake account with AGENTNEXUS_SVC configured</li>
+            </ul>
+
+            <h3>Deployment Steps</h3>
+            <div class="mermaid">
+flowchart LR
+    A[1. Setup Snowflake] --> B[2. Configure Key Vault]
+    B --> C[3. Start AgentNexus]
+    C --> D[4. Start NexusChat]
+    D --> E[5. Verify Health]
+            </div>
+
+            <h4>Step 1: Execute Snowflake Setup</h4>
+            <pre><code># Connect to Snowflake
+snowsql -a vga30685.east-us-2.azure -u ADMIN_USER
+
+# Execute setup scripts in order
+!source snowflake-setup/01-multi-tenant-structure.sql
+!source snowflake-setup/02-token-efficient-cortex.sql
+!source snowflake-setup/03-bulk-org-creation.sql
+!source snowflake-setup/04-monitoring-views.sql
+!source snowflake-setup/05-conversation-storage.sql</code></pre>
+
+            <h4>Step 2: Start AgentNexus Backend</h4>
+            <pre><code>cd C:\videxa-repos\agentnexus-backend
+
+# Set environment variables
+export AZURE_KEY_VAULT_URL="https://kv-agentnexus-prd-cus.vault.azure.net/"
+export ENABLE_TESTING_ENDPOINTS=false
+
+# Start server
+uvicorn app.main:app --host 0.0.0.0 --port 3050 --reload</code></pre>
+
+            <h4>Step 3: Start NexusChat Container</h4>
+            <pre><code>cd C:\videxa-repos\NexusChat
+
+# Use Snowflake-only compose file
+docker-compose -f docker-compose.snowflake-only.yml down
+docker-compose -f docker-compose.snowflake-only.yml up -d
+
+# Verify containers
+docker ps
+# Expected: NexusChat-Videxa-Snowflake on port 3080</code></pre>
+
+            <h4>Step 4: Verify Deployment</h4>
+            <pre><code># Check NexusChat health
+curl http://localhost:3080/health
+
+# Check AgentNexus health
+curl http://localhost:3050/api/health
+
+# Test authentication
+curl -X POST http://localhost:3050/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@videxa.ai","password":"..."}'</code></pre>
+        </section>
+
+        <!-- Security Section -->
+        <section id="security">
+            <h2>9. Security Configuration</h2>
+
+            <h3>Security Architecture</h3>
+            <div class="mermaid">
+flowchart TB
+    subgraph Security["Security Layers"]
+        subgraph Auth["Authentication"]
+            JWT[JWT Tokens<br/>24hr expiration]
+            BCRYPT[bcrypt Password Hashing]
+            RSA[RSA Key-Pair Auth<br/>to Snowflake]
+        end
+
+        subgraph Access["Access Control"]
+            RBAC[Role-Based Access]
+            TENANT[Tenant Isolation]
+            RATE[Rate Limiting]
+        end
+
+        subgraph Secrets["Secrets Management"]
+            KV[Azure Key Vault]
+            ROTATE[90-day Rotation]
+            AUDIT[Audit Logging]
+        end
+    end
+            </div>
+
+            <h3>Security Practices</h3>
+            <table>
+                <tr>
+                    <th>Area</th>
+                    <th>Implementation</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Password Storage</td>
+                    <td>bcrypt hashing with salt</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Session Management</td>
+                    <td>JWT tokens, 24hr expiration</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Snowflake Auth</td>
+                    <td>RSA key-pair (no passwords)</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Secrets Storage</td>
+                    <td>Azure Key Vault (RBAC)</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Tenant Isolation</td>
+                    <td>Per-org databases (HCS00XX_DB)</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Rate Limiting</td>
+                    <td>Login attempts, API calls</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Account Lockout</td>
+                    <td>5 failed attempts = 15min lock</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+                <tr>
+                    <td>Audit Logging</td>
+                    <td>USER_LOGIN_EVENTS table</td>
+                    <td><span class="status-badge status-complete">Complete</span></td>
+                </tr>
+            </table>
+
+            <h3>HIPAA Compliance</h3>
+            <div class="alert alert-success">
+                <strong>HIPAA Ready:</strong> All PHI data remains within the Snowflake security boundary. No external API calls (OpenAI, etc.) that would expose PHI.
+            </div>
+            <ul>
+                <li><strong>Single Audit Surface:</strong> All data in Snowflake (BAA available)</li>
+                <li><strong>Data Residency:</strong> US region (East US 2 Azure)</li>
+                <li><strong>Encryption:</strong> At-rest and in-transit encryption</li>
+                <li><strong>Access Logging:</strong> Complete audit trail of all data access</li>
+            </ul>
+        </section>
+
+        <!-- Feature Status Section -->
+        <section id="feature-status">
+            <h2>10. Feature Status</h2>
+
+            <h3>Epic 1: Core Authentication (95% Complete)</h3>
+            <table>
+                <tr><th>Feature</th><th>Status</th></tr>
+                <tr><td>User Authentication via Snowflake</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>JWT Token Generation & Validation</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Password Reset Flow</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Email Verification</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Login Event Logging</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Rate Limiting</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+            </table>
+
+            <h3>Epic 2: Conversation & Message Management (90% Complete)</h3>
+            <table>
+                <tr><th>Feature</th><th>Status</th></tr>
+                <tr><td>Create New Conversation</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Send/Store Chat Messages</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Retrieve Conversation History</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>List User Conversations</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Update Conversation Title</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Delete Conversation</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Conversation Search</td><td><span class="status-badge status-planned">Planned</span></td></tr>
+            </table>
+
+            <h3>Epic 3: File Ingestion & Healthcare Data (65% Complete)</h3>
+            <table>
+                <tr><th>Feature</th><th>Status</th></tr>
+                <tr><td>File Upload (CSV, PDF, Excel, JSON)</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>File Validation & Size Limits</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Tenant-Specific Data Storage</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Claims Data Parsing</td><td><span class="status-badge status-progress">In Progress</span></td></tr>
+                <tr><td>Contract/Policy Analysis</td><td><span class="status-badge status-progress">In Progress</span></td></tr>
+            </table>
+
+            <h3>Epic 5: AI & RAG Capabilities (100% Complete)</h3>
+            <table>
+                <tr><th>Feature</th><th>Status</th></tr>
+                <tr><td>Multi-Model Support (OpenAI, Anthropic, Google)</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Model Switching Mid-Conversation</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Snowflake Cortex Integration</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>RAG (Retrieval-Augmented Generation)</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Vector Similarity Search</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+                <tr><td>Prompt Caching Infrastructure</td><td><span class="status-badge status-complete">Complete</span></td></tr>
+            </table>
+        </section>
+
+        <!-- Known Limitations Section -->
+        <section id="known-limitations">
+            <h2>11. Known Limitations</h2>
+
+            <div class="alert alert-warning">
+                <h4>1. Conversation Search (UC-008)</h4>
+                <p>Full-text search not yet implemented. See <a href="#use-cases">UC0008</a> for Snowflake Cortex Search replacement plan.</p>
+                <p><strong>Workaround:</strong> Basic SQL ILIKE queries available for Phase 1 implementation.</p>
+            </div>
+
+            <div class="alert alert-warning">
+                <h4>2. PDF Export</h4>
+                <p>Dashboard PDF export feature not available.</p>
+                <p><strong>Workaround:</strong> Use browser print-to-PDF functionality.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <h4>3. Rate Limiting</h4>
+                <p>Rate limiting causes E2E test failures when running rapid sequential tests.</p>
+                <p><strong>Note:</strong> This is expected security behavior, not a bug.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <h4>4. MeiliSearch</h4>
+                <p>MeiliSearch operationally disabled (container removed, code conditionally bypassed via USE_SNOWFLAKE_STORAGE=true).</p>
+                <p><strong>Replacement:</strong> Snowflake Cortex Search (documented in UC0008).</p>
+            </div>
+        </section>
+
+        <!-- Glossary Section -->
+        <section id="glossary">
+            <h2>12. Glossary</h2>
+
+            <table>
+                <tr>
+                    <th>Term</th>
+                    <th>Definition</th>
+                </tr>
+                <tr>
+                    <td><strong>AgentNexus</strong></td>
+                    <td>The FastAPI backend service that handles authentication, Snowflake integration, and API routing.</td>
+                </tr>
+                <tr>
+                    <td><strong>Cortex</strong></td>
+                    <td>Snowflake's built-in AI/ML service providing LLM completions and embeddings without external API calls.</td>
+                </tr>
+                <tr>
+                    <td><strong>HCS</strong></td>
+                    <td>Healthcare System - prefix for tenant databases (HCS0001_DB through HCS0020_DB).</td>
+                </tr>
+                <tr>
+                    <td><strong>JWT</strong></td>
+                    <td>JSON Web Token - used for stateless authentication between frontend and backend.</td>
+                </tr>
+                <tr>
+                    <td><strong>RAG</strong></td>
+                    <td>Retrieval-Augmented Generation - AI technique that retrieves relevant context before generating responses.</td>
+                </tr>
+                <tr>
+                    <td><strong>Tenant</strong></td>
+                    <td>An isolated healthcare organization with its own database and data.</td>
+                </tr>
+                <tr>
+                    <td><strong>Videxa</strong></td>
+                    <td>The parent company brand. NexusChat is branded as "Nex by Videxa".</td>
+                </tr>
+            </table>
+        </section>
+    </div>
+
+    <footer>
+        <p><strong>NexusChat Comprehensive Documentation</strong></p>
+        <p>Version 1.0.0 | Last Updated: December 15, 2025</p>
+        <p>Generated by Claude (AI Assistant) | Videxa LLC</p>
+    </footer>
+
+    <a href="#toc" class="back-to-top">↑ Top</a>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
+</body>
+</html>

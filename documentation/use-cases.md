@@ -312,19 +312,154 @@ NexusChat enables you to:
 
 ---
 
+## UC0008: Conversation and Message Search (Snowflake Cortex Search)
+
+**Summary**: Users can search across their conversation history and message content using natural language queries. The search functionality replaces the deprecated MeiliSearch system with native Snowflake capabilities, providing full-text search, semantic similarity search, and autocomplete suggestions while maintaining HIPAA compliance within the Snowflake security boundary.
+
+**Actors**: All authenticated users
+
+**Preconditions**:
+- User is authenticated to NexusChat
+- User has at least one conversation in the system
+- Snowflake Cortex functions available (EMBED_TEXT_768, COMPLETE)
+- NEXUSCHAT schema contains CONVERSATIONS and CHAT_MESSAGES tables
+
+**Flow**:
+1. User clicks search icon or presses Ctrl+K to open search modal
+2. User types search query (e.g., "claims denial analysis")
+3. System performs multi-tier search:
+   - **Tier 1: Title Match** - ILIKE search on CONVERSATIONS.TITLE
+   - **Tier 2: Content Match** - ILIKE search on CHAT_MESSAGES.CONTENT
+   - **Tier 3: Semantic Search** - Vector similarity on embedded content (if enabled)
+4. System ranks results by relevance:
+   - Exact matches scored highest
+   - Recent conversations boosted
+   - Semantic similarity for near-matches
+5. User sees paginated results with highlighted matches
+6. User clicks result to navigate to conversation/message
+7. Search history optionally saved for quick recall
+
+**Postconditions**:
+- Matching conversations and messages displayed to user
+- Search query logged to CORTEX_USAGE_LOG (if Cortex functions used)
+- User preference for search history updated
+
+**Implementation Options**:
+
+### Option A: Basic SQL Search (Phase 1 - Currently Available)
+```sql
+-- Search conversations by title
+SELECT CONVERSATION_ID, TITLE, UPDATED_AT
+FROM NEXUSCHAT.CONVERSATIONS
+WHERE USER_ID = :user_id
+  AND TITLE ILIKE '%' || :search_query || '%'
+ORDER BY UPDATED_AT DESC
+LIMIT 20;
+
+-- Search messages by content
+SELECT m.MESSAGE_ID, m.CONVERSATION_ID, m.CONTENT, c.TITLE
+FROM NEXUSCHAT.CHAT_MESSAGES m
+JOIN NEXUSCHAT.CONVERSATIONS c ON m.CONVERSATION_ID = c.CONVERSATION_ID
+WHERE m.USER_ID = :user_id
+  AND m.CONTENT ILIKE '%' || :search_query || '%'
+ORDER BY m.CREATED_AT DESC
+LIMIT 50;
+```
+
+### Option B: Snowflake Cortex Search Service (Phase 2 - Recommended)
+```sql
+-- Create Cortex Search Service for conversations
+CREATE OR REPLACE CORTEX SEARCH SERVICE nexuschat_conversation_search
+  ON CONVERSATION_ID, TITLE, SYSTEM_PROMPT
+  WAREHOUSE = COMPUTE_WH
+  TARGET_LAG = '1 minute'
+  AS (
+    SELECT
+      CONVERSATION_ID,
+      TITLE,
+      SYSTEM_PROMPT,
+      USER_ID,
+      UPDATED_AT
+    FROM NEXUSCHAT.CONVERSATIONS
+    WHERE ARCHIVED = FALSE
+  );
+
+-- Query the search service
+SELECT PARSE_JSON(
+  SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+    'NEXUSCHAT_DB.NEXUSCHAT.nexuschat_conversation_search',
+    '{
+      "query": "claims denial analysis",
+      "columns": ["CONVERSATION_ID", "TITLE", "UPDATED_AT"],
+      "filter": {"@eq": {"USER_ID": "user-123"}},
+      "limit": 20
+    }'
+  )
+) as results;
+```
+
+### Option C: Vector Similarity Search (Phase 3 - Advanced)
+```sql
+-- Add embedding column to conversations
+ALTER TABLE NEXUSCHAT.CONVERSATIONS ADD COLUMN IF NOT EXISTS
+  TITLE_EMBEDDING VECTOR(FLOAT, 768);
+
+-- Generate embeddings for existing conversations
+UPDATE NEXUSCHAT.CONVERSATIONS
+SET TITLE_EMBEDDING = SNOWFLAKE.CORTEX.EMBED_TEXT_768(
+  'snowflake-arctic-embed-m',
+  TITLE || ' ' || COALESCE(SYSTEM_PROMPT, '')
+)
+WHERE TITLE_EMBEDDING IS NULL;
+
+-- Semantic search query
+SELECT
+  CONVERSATION_ID,
+  TITLE,
+  VECTOR_COSINE_SIMILARITY(
+    TITLE_EMBEDDING,
+    SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', :query)
+  ) as similarity_score
+FROM NEXUSCHAT.CONVERSATIONS
+WHERE USER_ID = :user_id
+  AND similarity_score > 0.5
+ORDER BY similarity_score DESC
+LIMIT 20;
+```
+
+**API Endpoints**:
+- `GET /api/search/conversations?q={query}` - Search conversation titles
+- `GET /api/search/messages?q={query}` - Search message content
+- `GET /api/search/all?q={query}` - Combined search across both
+
+**Related Files**:
+- Table: `NEXUSCHAT.CONVERSATIONS`
+- Table: `NEXUSCHAT.CHAT_MESSAGES`
+- Service: `nexuschat_conversation_search` (Cortex Search)
+- Backend: `agentnexus-backend/app/routers/search.py` (to be created)
+- Frontend: `client/src/components/Search/SearchModal.tsx` (to be created)
+
+**Migration from MeiliSearch**:
+- MeiliSearch container removed from docker-compose.snowflake-only.yml
+- USE_SNOWFLAKE_STORAGE=true bypasses MeiliSearch plugin
+- No code changes required - graceful fallback already implemented
+- See: [MEILISEARCH-REMOVAL-STATUS.md](MEILISEARCH-REMOVAL-STATUS.md)
+
+---
+
 ## Additional Use Cases (Brief)
 
-### UC0008: Audit Log and Compliance Reporting
+### UC0009: Audit Log and Compliance Reporting
 Users can generate HIPAA-compliant audit reports showing all data access, AI queries, and user activities for regulatory compliance.
 
-### UC0009: Archived Conversation Retrieval
+### UC0010: Archived Conversation Retrieval
 Users can search and restore archived conversations older than 90 days for historical analysis or reference.
 
-### UC0010: Role-Based Data Access Control
+### UC0011: Role-Based Data Access Control
 Administrators can configure granular permissions controlling which users can access specific data schemas (CLAIMS, PATIENTS, POLICIES).
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: November 2, 2025
-**Total Use Cases**: 10 primary, 3 additional
+**Document Version**: 1.1
+**Last Updated**: December 15, 2025
+**Total Use Cases**: 11 primary, 3 additional

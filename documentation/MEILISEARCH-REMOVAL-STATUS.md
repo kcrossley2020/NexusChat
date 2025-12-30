@@ -240,11 +240,25 @@ Move to archive:
 - `MEILISEARCH-FIX-COMPLETE.md`
 - `MEILISEARCH-REMOVAL-SUMMARY.md`
 
-### Priority 6: Implement Snowflake Search (Future)
+### Priority 6: Implement Snowflake Search (Documented)
 
-1. Create search function in AgentNexus backend
-2. Update frontend search component
-3. Test with E2E tests
+**Status**: Use cases and test cases documented, implementation pending.
+
+**Documentation**:
+- **Use Case**: [UC0008 - Conversation and Message Search](use-cases.md#uc0008-conversation-and-message-search-snowflake-cortex-search)
+- **Test Cases**: [TC-1-UC0008 through TC-5-UC0008](test-cases.md#tc-1-uc0008-basic-conversation-title-search-ilike)
+
+**Implementation Phases**:
+1. **Phase 1 (Basic)**: ILIKE SQL search - immediately available, no Cortex costs
+2. **Phase 2 (Recommended)**: Cortex Search Service - native full-text with relevance
+3. **Phase 3 (Advanced)**: Vector similarity search - semantic matching
+
+**Implementation Steps**:
+1. Create search router: `agentnexus-backend/app/routers/search.py`
+2. Add API endpoints: `/api/search/conversations`, `/api/search/messages`, `/api/search/all`
+3. Update frontend: `client/src/components/Search/SearchModal.tsx`
+4. Execute test cases TC-1 through TC-5
+5. Monitor Cortex usage and costs
 
 ---
 
@@ -278,14 +292,16 @@ Move to archive:
 
 ## Search Feature Status
 
-| Feature | MeiliSearch (Old) | Snowflake (Current) | Status |
-|---------|-------------------|---------------------|--------|
-| Conversation title search | Supported | Basic ILIKE | Degraded |
-| Message content search | Supported | Basic ILIKE | Degraded |
-| Autocomplete | Supported | Not implemented | Missing |
-| Relevance ranking | Supported | Not implemented | Missing |
-| Fuzzy matching | Supported | Not implemented | Missing |
-| Semantic search | Not supported | Cortex available | Upgrade opportunity |
+| Feature | MeiliSearch (Old) | Snowflake (Planned) | Status | Test Case |
+|---------|-------------------|---------------------|--------|-----------|
+| Conversation title search | Supported | ILIKE (Phase 1) | Ready | TC-1-UC0008 |
+| Message content search | Supported | ILIKE (Phase 1) | Ready | TC-2-UC0008 |
+| Combined search | Supported | ILIKE (Phase 1) | Ready | TC-3-UC0008 |
+| Autocomplete | Supported | Cortex Search (Phase 2) | Planned | - |
+| Relevance ranking | Supported | Cortex Search (Phase 2) | Planned | - |
+| Fuzzy matching | Supported | Cortex Search (Phase 2) | Planned | - |
+| Semantic search | Not supported | Vector Similarity (Phase 3) | Planned | TC-4-UC0008 |
+| Rate limiting | N/A | Backend middleware | Planned | TC-5-UC0008 |
 
 ---
 
@@ -307,6 +323,10 @@ MeiliSearch has been **operationally disabled** through:
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
+**Last Updated:** December 15, 2025
 **Prepared By:** Claude (AI Assistant)
 **Review Cycle:** After search feature implementation
+**Related Documentation:**
+- [UC0008 - Conversation and Message Search](use-cases.md#uc0008-conversation-and-message-search-snowflake-cortex-search)
+- [TC-1-UC0008 through TC-5-UC0008 Test Cases](test-cases.md#tc-1-uc0008-basic-conversation-title-search-ilike)
